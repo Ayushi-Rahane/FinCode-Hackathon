@@ -1,0 +1,17 @@
+# Flask core
+Flask==3.0.3
+flask-cors==4.0.1
+
+# Data processing
+pandas==2.2.2
+numpy==1.26.4
+
+# Database
+pymongo==4.7.2
+python-dotenv==1.0.1
+
+# File handling
+Werkzeug==3.0.3
+
+# Utilities
+python-dateutil==2.9.0

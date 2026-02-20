@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
-    "./public/index.html"
+    "./index.html"
   ],
   theme: {
     extend: {
@@ -15,7 +15,9 @@ module.exports = {
         card: "#162133",
       },
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
+        sans: ["Cormorant Garamond", "Georgia", "serif"],
+        serif: ["Cormorant Garamond", "Georgia", "serif"],
+        display: ["Cormorant Garamond", "Georgia", "serif"],
       },
     },
   },

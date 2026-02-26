@@ -6,6 +6,10 @@ import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import StressTestingPage from "./pages/StressTestingPage";
 import LoanOptimizationPage from "./pages/LoanOptimizationPage";
+import InsightsPage from "./pages/InsightsPage";
+import ReportPage from "./pages/ReportPage";
+import BusinessProfilePage from "./pages/BusinessProfilePage";
+
 
 function App() {
     return (
@@ -17,10 +21,13 @@ function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/stress-testing" element={<StressTestingPage />} />
                 <Route path="/loan-optimization" element={<LoanOptimizationPage />} />
+                <Route path="/insights" element={<InsightsPage />} />
+                <Route path="/report" element={<ReportPage />} />
+                <Route path="/profile" element={<BusinessProfilePage />} />
+
             </Routes>
         </BrowserRouter>
     );
 }
 
 export default App;
-

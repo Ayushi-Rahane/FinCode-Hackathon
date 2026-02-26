@@ -10,3 +10,23 @@
         font-family: "Cormorant Garamond", Georgia, serif;
     }
 }
+
+/* ── Print Styles ── */
+@media print {
+
+    .print\:hidden,
+    aside {
+        display: none !important;
+    }
+
+    main {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    body {
+        background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

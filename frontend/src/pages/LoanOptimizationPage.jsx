@@ -102,8 +102,81 @@ const LoanOptimizationPage = () => {
                 <div className="mb-10">
                     <h1 className="text-4xl font-bold text-gray-900 mb-2">Loan Optimization</h1>
                     <p className="text-gray-500 text-lg" style={FONT}>
-                        Compare your proposed loan structure against our data-driven recommendation.
+                        Compare your proposed loan with our AI-recommended safe alternative
                     </p>
+                </div>
+
+                {/* ── Loan Comparison Cards ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    {/* Your Proposed Loan */}
+                    <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900" style={FONT}>Your Proposed Loan</h2>
+                            <span className="px-4 py-1.5 rounded-full bg-yellow-100 text-yellow-700 text-sm font-bold" style={FONT}>Moderate</span>
+                        </div>
+                        <p className="text-gray-500 text-sm mb-1" style={FONT}>Loan Amount</p>
+                        <p className="text-3xl font-bold text-gray-900 mb-5" style={FONT}>$100,000</p>
+                        <div className="flex gap-12 mb-6">
+                            <div>
+                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Tenure</p>
+                                <p className="text-lg font-bold text-gray-900" style={FONT}>36 months</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Monthly EMI</p>
+                                <p className="text-lg font-bold text-gray-900" style={FONT}>$2,917</p>
+                            </div>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-4 mb-5">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-gray-600 text-sm font-medium" style={FONT}>EMI Coverage Ratio</span>
+                                <span className="text-xl font-bold text-[#1B2F6E]" style={FONT}>1.68x</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                <div className="bg-[#1B2F6E] h-2.5 rounded-full" style={{ width: '56%' }}></div>
+                            </div>
+                        </div>
+                        <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+                            <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-gray-700 text-sm" style={FONT}>This loan may strain your cash flow during economic downturns.</p>
+                        </div>
+                    </div>
+
+                    {/* Recommended Safe Loan */}
+                    <div className="rounded-2xl border-2 border-[#1B2F6E]/20 bg-white p-8 shadow-sm">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-[#1B2F6E]" style={FONT}>Recommended Safe Loan</h2>
+                            <span className="px-4 py-1.5 rounded-full bg-[#1B2F6E] text-white text-sm font-bold" style={FONT}>Optimal</span>
+                        </div>
+                        <p className="text-gray-500 text-sm mb-1" style={FONT}>Loan Amount</p>
+                        <p className="text-3xl font-bold text-[#1B2F6E] mb-5" style={FONT}>$75,000</p>
+                        <div className="flex gap-12 mb-6">
+                            <div>
+                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Tenure</p>
+                                <p className="text-lg font-bold text-gray-900" style={FONT}>48 months</p>
+                            </div>
+                            <div>
+                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Monthly EMI</p>
+                                <p className="text-lg font-bold text-gray-900" style={FONT}>$1,719</p>
+                            </div>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-4 mb-5">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-gray-600 text-sm font-medium" style={FONT}>EMI Coverage Ratio</span>
+                                <span className="text-xl font-bold text-[#1B2F6E]" style={FONT}>2.85x</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                <div className="bg-[#1B2F6E] h-2.5 rounded-full" style={{ width: '95%' }}></div>
+                            </div>
+                        </div>
+                        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex items-start gap-3">
+                            <svg className="w-5 h-5 text-[#1B2F6E] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            <p className="text-gray-700 text-sm" style={FONT}>Provides excellent safety margin and withstands economic stress scenarios.</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* ── Comparison Table ── */}

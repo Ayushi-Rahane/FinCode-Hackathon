@@ -28,28 +28,28 @@ const STRESS_RESULTS = [
 ];
 
 const LOAN_COMPARISON = [
-    { metric: "Loan Amount", proposed: "$5,00,000", recommended: "$3,50,000" },
+    { metric: "Loan Amount", proposed: "₹5,00,000", recommended: "₹3,50,000" },
     { metric: "Tenure", proposed: "36 months", recommended: "48 months" },
     { metric: "Interest Rate", proposed: "12%", recommended: "11.5%" },
-    { metric: "Monthly EMI", proposed: "$16,607", recommended: "$9,186" },
+    { metric: "Monthly EMI", proposed: "₹16,607", recommended: "₹9,186" },
     { metric: "EMI Coverage", proposed: "1.4x", recommended: "3.1x" },
     { metric: "Risk Level", proposed: "High", recommended: "Safe" },
 ];
 
-const KEY_RECOMMENDATIONS = [
-    { title: "Improve Liquidity Buffer", impact: "+35 pts", priority: "High", description: "Maintain 3+ months of operating expenses in reserve." },
-    { title: "Reduce Revenue Volatility", impact: "+28 pts", priority: "Medium", description: "Diversify revenue streams and secure anchor clients." },
-    { title: "Avoid High EMI Exposure", impact: "+45 pts", priority: "High", description: "Restructure loan to reduce EMI to 23% of surplus." },
-    { title: "Strengthen Payment Discipline", impact: "+12 pts", priority: "Low", description: "Set up automated payments for recurring obligations." },
-    { title: "Build Seasonal Cash Reserve", impact: "+20 pts", priority: "Medium", description: "Allocate surplus into seasonal reserve for dip months." },
-];
+// KEY_RECOMMENDATIONS removed, using dynamic insightsList now
 
 /* ═══════════════════════════════════════════════════════════════ */
 const ReportPage = () => {
     const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
+    const insightsList = analysisData.insights || [];
     const reportRef = useRef(null);
 
-    const handleLogout = () => navigate("/login");
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        navigate("/login");
+    };
 
     const handleDownloadPDF = async () => {
         const html2pdf = (await import("html2pdf.js")).default;
@@ -86,10 +86,16 @@ const ReportPage = () => {
                     </Link>
                     <div className="border-b border-gray-200 mx-2 mb-4" />
                     <Link to="/profile" className="flex items-center gap-3 px-3 py-3 mb-4 rounded-xl hover:bg-gray-50 transition-all duration-200 group">
-                        <div className="w-9 h-9 bg-[#1B2F6E] rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">A</div>
+                        <div className="w-9 h-9 bg-[#1B2F6E] rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
+                            {user?.businessName ? user.businessName.charAt(0).toUpperCase() : "U"}
+                        </div>
                         <div>
-                            <p className="text-gray-900 font-bold text-sm group-hover:text-[#1B2F6E] transition-colors">Apex Trading Co.</p>
-                            <p className="text-gray-400 text-xs">Retail &amp; E-Commerce</p>
+                            <p className="text-gray-900 font-bold text-sm group-hover:text-[#1B2F6E] transition-colors truncate w-32">
+                                {user?.businessName || "Your Business"}
+                            </p>
+                            <p className="text-gray-400 text-xs truncate w-32">
+                                {user?.industry || "Industry"}
+                            </p>
                         </div>
                     </Link>
                     <div className="border-b border-gray-200 mx-2 mb-4" />
@@ -179,11 +185,11 @@ const ReportPage = () => {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             <div>
                                 <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Company Name</p>
-                                <p className="text-gray-900 font-bold text-base" style={FONT}>Apex Trading Co.</p>
+                                <p className="text-gray-900 font-bold text-base" style={FONT}>{user?.businessName || "Your Business"}</p>
                             </div>
                             <div>
                                 <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Industry</p>
-                                <p className="text-gray-900 font-bold text-base" style={FONT}>Retail & E-Commerce</p>
+                                <p className="text-gray-900 font-bold text-base" style={FONT}>{user?.industry || "Industry"}</p>
                             </div>
                             <div>
                                 <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Analysis Period</p>
@@ -365,17 +371,17 @@ const ReportPage = () => {
                             Key Recommendations
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {KEY_RECOMMENDATIONS.map((rec, i) => (
+                            {insightsList.map((rec, i) => (
                                 <div key={i} className="rounded-xl border border-gray-100 p-5 hover:shadow-md transition-shadow duration-200">
                                     <div className="flex items-center justify-between mb-3">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${rec.priority === "High" ? "bg-red-100 text-red-700" :
-                                            rec.priority === "Medium" ? "bg-orange-100 text-orange-700" :
-                                                "bg-green-100 text-green-700"
-                                            }`} style={FONT}>{rec.priority}</span>
-                                        <span className="text-[#1B2F6E] font-bold text-sm" style={FONT}>{rec.impact}</span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${rec.priority === "High Priority" ? "bg-red-100 text-red-700" :
+                                            rec.priority === "Medium Priority" ? "bg-orange-100 text-orange-700" :
+                                                rec.priority === "Low Priority" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                                            }`} style={FONT}>{rec.priority.replace(" Priority", "")}</span>
+                                        <span className={`font-bold text-sm ${rec.scoreImpact.includes("+") ? "text-[#1B2F6E]" : "text-green-600"}`} style={FONT}>{rec.scoreImpact}</span>
                                     </div>
                                     <h4 className="font-bold text-gray-900 text-sm mb-2" style={FONT}>{rec.title}</h4>
-                                    <p className="text-gray-500 text-xs leading-relaxed" style={FONT}>{rec.description}</p>
+                                    <p className="text-gray-500 text-xs leading-relaxed" style={FONT}>{rec.action}</p>
                                 </div>
                             ))}
                         </div>

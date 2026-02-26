@@ -1,20 +1,26 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const BusinessSummaryCard = () => {
+    const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const companyName = user.businessName || "Apex Trading Co.";
+    const industry = user.industry || "Retail & E-Commerce";
+
     return (
         <div className="bg-white rounded-2xl border border-gray-200 p-8 mb-6 shadow-sm flex flex-col md:flex-row gap-8 justify-between">
             {/* Left Section */}
             <div className="flex gap-6">
                 {/* Logo */}
                 <div className="w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                    <svg className="w-8 h-8 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+                    <span className="text-3xl font-bold text-[#1B2F6E]">
+                        {companyName.charAt(0).toUpperCase()}
+                    </span>
                 </div>
 
                 <div className="flex flex-col">
                     <div className="flex items-center gap-4 mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900">Apex Trading Co.</h2>
+                        <h2 className="text-2xl font-bold text-gray-900 truncate max-w-sm">{companyName}</h2>
                         <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-[#1B2F6E] text-sm font-semibold rounded-lg">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -31,7 +37,7 @@ const BusinessSummaryCard = () => {
                                 </svg>
                                 <span className="text-sm font-medium">Industry</span>
                             </div>
-                            <p className="text-gray-900 font-bold text-base">Retail & E-Commerce</p>
+                            <p className="text-gray-900 font-bold text-base truncate max-w-xs">{industry}</p>
                         </div>
                         <div>
                             <div className="flex items-center gap-2 text-gray-600 mb-1">
@@ -73,7 +79,10 @@ const BusinessSummaryCard = () => {
                     </svg>
                     Edit Profile
                 </button>
-                <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-[#2A3F84] rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-semibold text-sm cursor-pointer">
+                <button
+                    onClick={() => navigate('/register?step=2')}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-[#2A3F84] rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-semibold text-sm cursor-pointer"
+                >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

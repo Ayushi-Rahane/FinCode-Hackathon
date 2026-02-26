@@ -1,9 +1,45 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
+
+        try {
+            const response = await fetch("http://localhost:5001/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to login");
+            }
+
+            // Save user to localStorage
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            // Navigate to dashboard
+            navigate("/dashboard");
+
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen flex">
@@ -75,7 +111,8 @@ const LoginPage = () => {
                         <h2 className="text-gray-900 text-3xl font-bold mb-1">Welcome back</h2>
                         <p className="text-gray-500 text-base mb-8">Sign in to your account</p>
 
-                        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-5">
+                        <form onSubmit={handleLogin} className="flex flex-col gap-5">
+                            {error && <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>}
 
                             {/* Email */}
                             <div className="flex flex-col gap-1.5">
@@ -86,6 +123,8 @@ const LoginPage = () => {
                                     id="email"
                                     type="email"
                                     placeholder="you@company.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     className="w-full border border-gray-200 rounded-lg px-4 py-3 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B2F6E] focus:border-transparent transition"
                                 />
                             </div>
@@ -105,6 +144,8 @@ const LoginPage = () => {
                                         id="password"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         className="w-full border border-gray-200 rounded-lg px-4 py-3 pr-11 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B2F6E] focus:border-transparent transition"
                                     />
                                     <button
@@ -141,9 +182,10 @@ const LoginPage = () => {
                             {/* Login Button */}
                             <button
                                 type="submit"
-                                className="w-full bg-[#1B2F6E] text-white py-3 rounded-lg font-bold text-base hover:bg-[#12235A] transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 mt-1"
+                                disabled={loading}
+                                className={`w-full text-white py-3 rounded-lg font-bold text-base transition-all duration-200 mt-1 flex justify-center items-center ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#1B2F6E] hover:bg-[#12235A] shadow-md hover:shadow-lg hover:-translate-y-0.5"}`}
                             >
-                                Sign In
+                                {loading ? "Signing in..." : "Sign In"}
                             </button>
                         </form>
 

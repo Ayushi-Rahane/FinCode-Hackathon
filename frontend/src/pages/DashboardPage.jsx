@@ -14,52 +14,13 @@ const NAV_ITEMS = [
     { label: "Report", to: "/report", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /> },
 ];
 
-/* ─── Stat Cards Data ─── */
-const METRICS = [
-    {
-        value: "87", unit: "%", label: "Cash Flow Stability",
-        description: "Strong consistency in monthly cash inflows with low variance.",
-        change: "+3% from prior period", positive: true,
-        iconPath: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />,
-    },
-    {
-        value: "2.4", unit: "x", label: "Liquidity Buffer",
-        description: "Operating expenses covered for 2.4 months without new inflows.",
-        change: "+0.2x improvement", positive: true,
-        iconPath: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />,
-    },
-    {
-        value: "3.1", unit: "x", label: "EMI Coverage",
-        description: "Monthly surplus covers proposed EMI 3.1 times over.",
-        change: "Healthy coverage ratio", positive: true,
-        iconPath: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />,
-    },
-    {
-        value: "94", unit: "%", label: "Payment Discipline",
-        description: "94% of recurring obligations met on time within the period.",
-        change: "-2% from prior period", positive: false,
-        iconPath: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />,
-    },
-];
-
-/* ─── Chart Data ─── */
-const REVENUE_DATA = [
-    { month: "Jul", revenue: 180000, expense: 120000 },
-    { month: "Aug", revenue: 195000, expense: 130000 },
-    { month: "Sep", revenue: 160000, expense: 125000 },
-    { month: "Oct", revenue: 210000, expense: 135000 },
-    { month: "Nov", revenue: 250000, expense: 140000 },
-    { month: "Dec", revenue: 190000, expense: 155000 },
-];
-
-const VOLATILITY_DATA = [
-    { month: "Jul", volatility: 12 },
-    { month: "Aug", volatility: 17 },
-    { month: "Sep", volatility: 8 },
-    { month: "Oct", volatility: 22 },
-    { month: "Nov", volatility: 16 },
-    { month: "Dec", volatility: 13 },
-];
+/* ─── Metric Icon Paths ─── */
+const ICONS = {
+    stability: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />,
+    liquidity: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />,
+    emi: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />,
+    discipline: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />,
+};
 
 /* ─── Gauge Component ─── */
 const CreditGauge = ({ score }) => {
@@ -129,7 +90,54 @@ const CreditGauge = ({ score }) => {
 /* ═════════════════════════════════════════════════════════════════ */
 const DashboardPage = () => {
     const navigate = useNavigate();
-    const handleLogout = () => navigate("/login");
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
+
+    const scores = analysisData?.scores || { overall: 742, stability: 87, liquidity: 80, emi: 90, discipline: 94 };
+
+    const dynamicMetrics = [
+        {
+            value: scores.stability, unit: "/100", label: "Cash Flow Stability",
+            description: "Consistency in monthly cash inflows based on transaction behavior.",
+            change: scores.stability >= 70 ? "Healthy cash flow" : "Needs attention", positive: scores.stability >= 70,
+            iconPath: ICONS.stability,
+        },
+        {
+            value: scores.liquidity, unit: "/100", label: "Liquidity Buffer Score",
+            description: "Operating strength mapped against estimated safety buffer.",
+            change: scores.liquidity >= 60 ? "Strong safety net" : "Tight liquidity", positive: scores.liquidity >= 60,
+            iconPath: ICONS.liquidity,
+        },
+        {
+            value: scores.emi, unit: "/100", label: "EMI Coverage Score",
+            description: "Monthly surplus mapped against standard hypothetical EMI loads.",
+            change: scores.emi >= 75 ? "Healthy coverage ratio" : "Low coverage constraint", positive: scores.emi >= 75,
+            iconPath: ICONS.emi,
+        },
+        {
+            value: scores.discipline, unit: "/100", label: "Payment Discipline Score",
+            description: "Track record of meeting recurring obligations on time.",
+            change: scores.discipline >= 85 ? "Excellent pay history" : "Bounces detected", positive: scores.discipline >= 85,
+            iconPath: ICONS.discipline,
+        },
+    ];
+
+    const chartRevenueData = analysisData?.monthly_data ? analysisData.monthly_data.map(m => ({
+        month: m.month.split(' ')[0], // 'Jan 2026' -> 'Jan'
+        revenue: m.inflow,
+        expense: m.outflow
+    })) : [];
+
+    // Map net surplus as proxy for volatility graph over time
+    const chartNetSurplusData = analysisData?.monthly_data ? analysisData.monthly_data.map(m => ({
+        month: m.month.split(' ')[0],
+        surplus: m.net_surplus
+    })) : [];
+
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        navigate("/login");
+    };
 
     return (
         <div className="min-h-screen flex bg-gray-50">
@@ -154,10 +162,16 @@ const DashboardPage = () => {
 
                     {/* Profile */}
                     <Link to="/profile" className="flex items-center gap-3 px-3 py-3 mb-4 rounded-xl hover:bg-gray-50 transition-all duration-200 group">
-                        <div className="w-9 h-9 bg-[#1B2F6E] rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">A</div>
+                        <div className="w-9 h-9 bg-[#1B2F6E] rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
+                            {user?.businessName ? user.businessName.charAt(0).toUpperCase() : "U"}
+                        </div>
                         <div>
-                            <p className="text-gray-900 font-bold text-sm group-hover:text-[#1B2F6E] transition-colors">Apex Trading Co.</p>
-                            <p className="text-gray-400 text-xs">Retail & E-Commerce</p>
+                            <p className="text-gray-900 font-bold text-sm group-hover:text-[#1B2F6E] transition-colors truncate w-32">
+                                {user?.businessName || "Your Business"}
+                            </p>
+                            <p className="text-gray-400 text-xs truncate w-32">
+                                {user?.industry || "Industry"}
+                            </p>
                         </div>
                     </Link>
 
@@ -210,14 +224,14 @@ const DashboardPage = () => {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-8">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-xl font-bold text-gray-900">Overall Risk Score</h2>
-                        <span className="text-[#1B2F6E] text-sm font-semibold bg-blue-50 px-3 py-1.5 rounded-lg">Updated: Feb 20, 2026</span>
+                        <span className="text-[#1B2F6E] text-sm font-semibold bg-blue-50 px-3 py-1.5 rounded-lg">Updated: {new Intl.DateTimeFormat('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())}</span>
                     </div>
-                    <CreditGauge score={742} />
+                    <CreditGauge score={scores.overall} />
                 </div>
 
                 {/* Metric Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-                    {METRICS.map(({ value, unit, label, description, change, positive, iconPath }) => (
+                    {dynamicMetrics.map(({ value, unit, label, description, change, positive, iconPath }) => (
                         <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-6">
                             {/* Top row — icon + trend */}
                             <div className="flex items-center justify-between mb-5">
@@ -258,7 +272,7 @@ const DashboardPage = () => {
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                         <h3 className="text-lg font-bold text-gray-900 mb-6" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Revenue vs Expense</h3>
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={REVENUE_DATA} barGap={4} barCategoryGap="25%">
+                            <BarChart data={chartRevenueData} barGap={4} barCategoryGap="25%">
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
                                 <XAxis
                                     dataKey="month" axisLine={false} tickLine={false}
@@ -266,11 +280,11 @@ const DashboardPage = () => {
                                 />
                                 <YAxis
                                     axisLine={false} tickLine={false}
-                                    tickFormatter={(v) => `$${v / 1000}k`}
+                                    tickFormatter={(v) => `₹${v / 1000}k`}
                                     tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
                                 />
                                 <Tooltip
-                                    formatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                                    formatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
                                     contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13 }}
                                 />
                                 <Legend
@@ -283,11 +297,11 @@ const DashboardPage = () => {
                         </ResponsiveContainer>
                     </div>
 
-                    {/* Monthly Revenue Volatility */}
+                    {/* Monthly Net Surplus */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-6" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Monthly Revenue Volatility</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-6" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Monthly Net Surplus Trend</h3>
                         <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={VOLATILITY_DATA}>
+                            <LineChart data={chartNetSurplusData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
                                 <XAxis
                                     dataKey="month" axisLine={false} tickLine={false}
@@ -295,16 +309,15 @@ const DashboardPage = () => {
                                 />
                                 <YAxis
                                     axisLine={false} tickLine={false}
-                                    tickFormatter={(v) => `${v}%`}
-                                    domain={[0, 24]}
+                                    tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
                                     tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
                                 />
                                 <Tooltip
-                                    formatter={(v) => `${v}%`}
+                                    formatter={(v) => `₹${v.toFixed(0)}`}
                                     contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13 }}
                                 />
                                 <Line
-                                    type="monotone" dataKey="volatility" name="Volatility"
+                                    type="monotone" dataKey="surplus" name="Net Surplus"
                                     stroke="#1B2F6E" strokeWidth={2.5}
                                     dot={{ r: 5, fill: '#1B2F6E', stroke: '#fff', strokeWidth: 2 }}
                                     activeDot={{ r: 7, fill: '#1B2F6E' }}

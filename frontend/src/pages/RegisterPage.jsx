@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 /* ───────────────────────── Industries List ───────────────────────── */
 const INDUSTRIES = [
@@ -57,8 +57,48 @@ const StepBusinessProfile = ({ onContinue }) => {
         businessName: "", industry: "", yearsInOperation: "",
         loanAmount: "", loanTenure: "",
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+    const handleContinue = async () => {
+        // Basic validation
+        if (form.password !== form.confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
+        const required = ["name", "email", "password", "businessName", "industry", "yearsInOperation", "loanAmount", "loanTenure"];
+        if (required.some(key => !form[key])) {
+            setError("Please fill in all fields");
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetch("http://localhost:5001/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to register");
+            }
+
+            // Success! Save user id if needed: localStorage.setItem('userId', data.userId);
+            onContinue();
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-start justify-center py-14 px-6">
@@ -106,18 +146,23 @@ const StepBusinessProfile = ({ onContinue }) => {
                         <Field label="Years in Operation" placeholder="e.g. 5" type="number" value={form.yearsInOperation} onChange={set("yearsInOperation")} />
 
                         <div className="grid grid-cols-2 gap-5">
-                            <Field label="Proposed Loan Amount" placeholder="500,000" type="number" prefix="$" value={form.loanAmount} onChange={set("loanAmount")} />
+                            <Field label="Proposed Loan Amount" placeholder="5,00,000" type="number" prefix="₹" value={form.loanAmount} onChange={set("loanAmount")} />
                             <Field label="Loan Tenure (months)" placeholder="36" type="number" value={form.loanTenure} onChange={set("loanTenure")} />
                         </div>
 
+                        {error && <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{error}</div>}
+
                         <button
-                            onClick={onContinue}
-                            className="w-full bg-[#1B2F6E] text-white py-3.5 rounded-lg font-bold text-base hover:bg-[#12235A] transition-all duration-200 shadow-md hover:shadow-lg mt-2 flex items-center justify-center gap-2"
+                            onClick={handleContinue}
+                            disabled={loading}
+                            className={`w - full py - 3.5 rounded - lg font - bold text - base transition - all duration - 200 shadow - md flex items - center justify - center gap - 2 mt - 2 ${loading ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#1B2F6E] text-white hover:bg-[#12235A] hover:shadow-lg'} `}
                         >
-                            Continue to Upload
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
+                            {loading ? "Registering..." : "Continue to Upload"}
+                            {!loading && (
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -148,36 +193,70 @@ const StepBusinessProfile = ({ onContinue }) => {
         </div>
     );
 };
-
-/* ═══════════════════════════════════════════════════════════════════ */
 /*  STEP 2 — Upload Bank Statements                                  */
 /* ═══════════════════════════════════════════════════════════════════ */
 const StepUpload = ({ onBeginAnalysis }) => {
     const [files, setFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState({});
+    const [analysisData, setAnalysisData] = useState(null);
+    const [error, setError] = useState(null);
     const inputRef = useRef(null);
 
-    const handleFiles = (incoming) => {
+    const handleFiles = async (incoming) => {
         const newFiles = Array.from(incoming);
-        setFiles((prev) => [...prev, ...newFiles]);
-        // simulate upload progress per file
-        newFiles.forEach((f) => {
-            simulateUpload(f.name);
-        });
-    };
+        // Only accept the first PDF for now
+        if (newFiles.length === 0) return;
 
-    const simulateUpload = (fileName) => {
+        const file = newFiles[0];
+        if (file.type !== "application/pdf") {
+            setError("Only PDF files are supported.");
+            return;
+        }
+
+        setFiles([file]);
+        setError(null);
         setUploading(true);
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 30 + 10;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
+        setUploadProgress({ [file.name]: 10 }); // Start progress
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            // Fake progress animation up to 80%
+            const interval = setInterval(() => {
+                setUploadProgress((prev) => ({
+                    ...prev,
+                    [file.name]: Math.min((prev[file.name] || 10) + 15, 80)
+                }));
+            }, 500);
+
+            const res = await fetch("http://localhost:5001/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            clearInterval(interval);
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || "Failed to upload and parse PDF");
             }
-            setUploadProgress((prev) => ({ ...prev, [fileName]: Math.min(Math.round(progress), 100) }));
-        }, 400);
+
+            // Success! Jump to 100%
+            setUploadProgress({ [file.name]: 100 });
+            setAnalysisData(data.data);
+
+            // Save to localStorage so dashboard can use it
+            localStorage.setItem("pdf_analysis", JSON.stringify(data.data));
+
+        } catch (err) {
+            setError(err.message);
+            setUploadProgress({ [file.name]: 0 });
+            setFiles([]);
+        } finally {
+            setUploading(false);
+        }
     };
 
     const allDone = files.length > 0 && Object.values(uploadProgress).every((p) => p === 100);
@@ -233,7 +312,7 @@ const StepUpload = ({ onBeginAnalysis }) => {
                                         <div className="w-full h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
                                             <div
                                                 className="h-full bg-[#1B2F6E] rounded-full transition-all duration-300"
-                                                style={{ width: `${uploadProgress[f.name] || 0}%` }}
+                                                style={{ width: `${uploadProgress[f.name] || 0}% ` }}
                                             />
                                         </div>
                                     </div>
@@ -254,15 +333,48 @@ const StepUpload = ({ onBeginAnalysis }) => {
                 </div>
 
                 {/* Begin Analysis */}
+                {error && <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl mb-6">{error}</div>}
+
+                {/* Validation Success View */}
+                {analysisData && (
+                    <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8 mt-6 text-left shadow-sm">
+                        <div className="flex items-center gap-2 mb-4">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="text-green-800 font-bold text-lg">File Validated Successfully</span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white p-3 rounded-lg border border-green-100">
+                                <p className="text-green-600 text-xs font-bold uppercase tracking-wider mb-1">Period</p>
+                                <p className="text-gray-900 font-bold">{analysisData.period}</p>
+                            </div>
+                            <div className="bg-white p-3 rounded-lg border border-green-100">
+                                <p className="text-green-600 text-xs font-bold uppercase tracking-wider mb-1">Transactions</p>
+                                <p className="text-gray-900 font-bold">{analysisData.transactions_detected}</p>
+                            </div>
+                            <div className="bg-white p-3 rounded-lg border border-green-100">
+                                <p className="text-green-600 text-xs font-bold uppercase tracking-wider mb-1">Total Inflow</p>
+                                <p className="text-gray-900 font-bold">{"₹" + (analysisData.total_inflow || 0).toLocaleString("en-IN")}</p>
+                            </div>
+                            <div className="bg-white p-3 rounded-lg border border-green-100">
+                                <p className="text-green-600 text-xs font-bold uppercase tracking-wider mb-1">Total Outflow</p>
+                                <p className="text-gray-900 font-bold">{"₹" + (analysisData.total_outflow || 0).toLocaleString("en-IN")}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <button
                     onClick={onBeginAnalysis}
-                    disabled={!allDone}
-                    className={`w-full mt-6 py-3.5 rounded-lg font-bold text-base flex items-center justify-center gap-2 transition-all duration-200 ${allDone
-                            ? "bg-[#1B2F6E] text-white hover:bg-[#12235A] shadow-md hover:shadow-lg"
-                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        }`}
+                    disabled={!allDone || !analysisData}
+                    className={`w - full mt - 6 py - 3.5 rounded - lg font - bold text - base flex items - center justify - center gap - 2 transition - all duration - 200 ${allDone && analysisData
+                        ? "bg-[#1B2F6E] text-white hover:bg-[#12235A] shadow-md hover:shadow-lg"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        } `}
                 >
-                    Begin Analysis
+                    Generate Credit Assessment
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
@@ -341,20 +453,20 @@ const StepAnalyzing = ({ onComplete }) => {
                         return (
                             <div
                                 key={step.title}
-                                className={`flex items-center gap-4 px-5 py-4 rounded-xl border transition-all duration-300 ${isActive
-                                        ? "bg-blue-50 border-[#1B2F6E] shadow-sm"
-                                        : isDone
-                                            ? "bg-white border-gray-100"
-                                            : "bg-white border-gray-100 opacity-40"
-                                    }`}
+                                className={`flex items - center gap - 4 px - 5 py - 4 rounded - xl border transition - all duration - 300 ${isActive
+                                    ? "bg-blue-50 border-[#1B2F6E] shadow-sm"
+                                    : isDone
+                                        ? "bg-white border-gray-100"
+                                        : "bg-white border-gray-100 opacity-40"
+                                    } `}
                             >
-                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${isActive || isDone ? "bg-[#1B2F6E] text-white" : "bg-gray-100 text-gray-400"
-                                    }`}>
+                                <div className={`w - 9 h - 9 rounded - lg flex items - center justify - center shrink - 0 ${isActive || isDone ? "bg-[#1B2F6E] text-white" : "bg-gray-100 text-gray-400"
+                                    } `}>
                                     {step.icon}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className={`font-bold text-sm ${isPending ? "text-gray-400" : "text-gray-900"}`}>{step.title}</p>
-                                    <p className={`text-xs ${isPending ? "text-gray-300" : "text-gray-500"}`}>{step.subtitle}</p>
+                                    <p className={`font - bold text - sm ${isPending ? "text-gray-400" : "text-gray-900"} `}>{step.title}</p>
+                                    <p className={`text - xs ${isPending ? "text-gray-300" : "text-gray-500"} `}>{step.subtitle}</p>
                                 </div>
                                 {isDone && (
                                     <svg className="w-5 h-5 text-[#1B2F6E] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -380,7 +492,7 @@ const Field = ({ label, prefix, ...props }) => (
             {prefix && <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{prefix}</span>}
             <input
                 {...props}
-                className={`w-full border border-gray-200 rounded-lg ${prefix ? "pl-8" : "px-4"} pr-4 py-3 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B2F6E] focus:border-transparent transition`}
+                className={`w - full border border - gray - 200 rounded - lg ${prefix ? "pl-8" : "px-4"} pr - 4 py - 3 text - gray - 900 text - sm placeholder - gray - 400 focus: outline - none focus: ring - 2 focus: ring - [#1B2F6E] focus: border - transparent transition`}
             />
         </div>
     </div>
@@ -390,7 +502,9 @@ const Field = ({ label, prefix, ...props }) => (
 /*  RegisterPage — Wizard                                             */
 /* ═══════════════════════════════════════════════════════════════════ */
 const RegisterPage = () => {
-    const [step, setStep] = useState(1);
+    const [searchParams] = useSearchParams();
+    const initialStep = searchParams.get("step") ? parseInt(searchParams.get("step")) : 1;
+    const [step, setStep] = useState(initialStep);
     const navigate = useNavigate();
 
     if (step === 1) return <StepBusinessProfile onContinue={() => setStep(2)} />;

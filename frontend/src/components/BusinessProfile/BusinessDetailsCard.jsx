@@ -1,6 +1,8 @@
 import React from "react";
 
 const BusinessDetailsCard = () => {
+    const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
+
     return (
         <div className="bg-white rounded-2xl border border-gray-200 p-8 mb-6 shadow-sm">
             <h3 className="text-xl font-bold text-gray-900 mb-8">Business Details</h3>
@@ -73,7 +75,7 @@ const BusinessDetailsCard = () => {
                         </div>
                         <div>
                             <p className="text-gray-600 text-xs font-bold uppercase tracking-wide mb-1">Average Monthly Revenue</p>
-                            <p className="text-gray-900 font-bold text-sm">₹8,45,000</p>
+                            <p className="text-gray-900 font-bold text-sm">{"₹" + (analysisData.avg_monthly_inflow || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</p>
                         </div>
                     </div>
 
@@ -86,7 +88,7 @@ const BusinessDetailsCard = () => {
                         </div>
                         <div>
                             <p className="text-gray-600 text-xs font-bold uppercase tracking-wide mb-1">Average Monthly Expense</p>
-                            <p className="text-gray-900 font-bold text-sm">₹6,12,000</p>
+                            <p className="text-gray-900 font-bold text-sm">{"₹" + (analysisData.avg_monthly_outflow || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</p>
                         </div>
                     </div>
 
@@ -99,7 +101,7 @@ const BusinessDetailsCard = () => {
                         </div>
                         <div>
                             <p className="text-gray-600 text-xs font-bold uppercase tracking-wide mb-1">Average Monthly Net Cash Flow</p>
-                            <p className="text-[#2A3F84] font-bold text-sm">₹2,33,000</p>
+                            <p className="text-[#2A3F84] font-bold text-sm">{"₹" + (analysisData.net_surplus || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</p>
                         </div>
                     </div>
 
@@ -112,7 +114,7 @@ const BusinessDetailsCard = () => {
                         </div>
                         <div>
                             <p className="text-gray-600 text-xs font-bold uppercase tracking-wide mb-1">Revenue Seasonality Indicator</p>
-                            <p className="text-gray-900 font-bold text-sm">Moderate Variation</p>
+                            <p className="text-gray-900 font-bold text-sm">{analysisData.seasonality_indicator || "Unknown"}</p>
                         </div>
                     </div>
                 </div>

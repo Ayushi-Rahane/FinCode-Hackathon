@@ -14,7 +14,10 @@ def create_app():
     app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH", 16 * 1024 * 1024))
 
     # CORS
-    CORS(app, origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")])
+    CORS(app, origins=[
+        os.getenv("FRONTEND_URL", "http://localhost:3000"),
+        "http://localhost:5173"
+    ])
 
     # Ensure upload folder exists
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -23,6 +26,9 @@ def create_app():
     from app.routes.upload_routes import upload_bp
     from app.routes.analysis_routes import analysis_bp
     from app.routes.recommendation_routes import recommendation_bp
+    from app.routes.auth_routes import auth_bp
+
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
     app.register_blueprint(upload_bp, url_prefix="/api/upload")
     app.register_blueprint(analysis_bp, url_prefix="/api/analysis")

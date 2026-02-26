@@ -11,6 +11,13 @@ const TRANSACTION_DATA = [
 ];
 
 const FinancialFootprintCard = () => {
+    const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
+    const { digital_footprint } = analysisData;
+
+    const upiPct = digital_footprint?.upi_pct ?? 68;
+    const posPct = digital_footprint?.pos_pct ?? 32;
+    const txVolumeTrend = digital_footprint?.tx_volume_trend ?? TRANSACTION_DATA;
+
     return (
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm mb-6 relative">
             <h3 className="text-xl font-bold text-gray-900 mb-8" style={{ fontFamily: 'Georgia, serif' }}>Banking & Financial Footprint</h3>
@@ -51,12 +58,12 @@ const FinancialFootprintCard = () => {
                         <h4 className="text-sm font-bold text-gray-700 mb-4 uppercase">Digital Payment Usage</h4>
                         <div className="flex gap-4">
                             <div className="flex-1 bg-gray-50 rounded-xl border border-gray-200 p-5 flex flex-col items-center justify-center text-center">
-                                <span className="text-2xl font-bold text-gray-900 mb-1">68%</span>
+                                <span className="text-2xl font-bold text-gray-900 mb-1">{upiPct}%</span>
                                 <span className="text-xs font-semibold text-gray-500">UPI Transactions</span>
                             </div>
                             <div className="flex-1 bg-gray-50 rounded-xl border border-gray-200 p-5 flex flex-col items-center justify-center text-center">
-                                <span className="text-2xl font-bold text-gray-900 mb-1">32%</span>
-                                <span className="text-xs font-semibold text-gray-500">POS/Card</span>
+                                <span className="text-2xl font-bold text-gray-900 mb-1">{posPct}%</span>
+                                <span className="text-xs font-semibold text-gray-500">Other Forms (POS/NEFT)</span>
                             </div>
                         </div>
                     </div>
@@ -72,7 +79,7 @@ const FinancialFootprintCard = () => {
                     <h4 className="text-sm font-bold text-gray-700 mb-4 uppercase">Transaction Volume Trend</h4>
                     <div className="h-64 w-full relative">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={TRANSACTION_DATA} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+                            <LineChart data={txVolumeTrend} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                 <XAxis
                                     dataKey="month"

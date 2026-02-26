@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import BusinessProfileHeader from "../components/BusinessProfile/BusinessProfileHeader";
 import BusinessSummaryCard from "../components/BusinessProfile/BusinessSummaryCard";
 import BusinessDetailsCard from "../components/BusinessProfile/BusinessDetailsCard";
+import MonthlyAnalysisCard from "../components/BusinessProfile/MonthlyAnalysisCard";
 import FinancialFootprintCard from "../components/BusinessProfile/FinancialFootprintCard";
 import AssessmentHistorySummaryCard from "../components/BusinessProfile/AssessmentHistorySummaryCard";
 import BusinessHealthSnapshotCard from "../components/BusinessProfile/BusinessHealthSnapshotCard";
@@ -19,7 +20,12 @@ const NAV_ITEMS = [
 
 const BusinessProfilePage = () => {
     const navigate = useNavigate();
-    const handleLogout = () => navigate("/login");
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        navigate("/login");
+    };
 
     return (
         <div className="min-h-screen flex bg-gray-50">
@@ -43,14 +49,12 @@ const BusinessProfilePage = () => {
 
                     {/* Profile Link (Active) */}
                     <Link to="/profile" className="flex items-center gap-3 px-3 py-3 mb-4 rounded-xl bg-gray-50 transition-all duration-200 group border border-gray-100 shadow-sm">
-                        <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-[#1B2F6E] shrink-0 border border-blue-100">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
+                        <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-[#1B2F6E] font-bold text-lg shrink-0 border border-blue-100">
+                            {user?.businessName ? user.businessName.charAt(0).toUpperCase() : "U"}
                         </div>
                         <div>
-                            <p className="text-[#1B2F6E] font-bold text-sm">Apex Trading Co.</p>
-                            <p className="text-gray-400 text-xs font-semibold mt-0.5">Retail & E-Commerce</p>
+                            <p className="text-[#1B2F6E] font-bold text-sm truncate w-32">{user?.businessName || "Your Business"}</p>
+                            <p className="text-gray-400 text-xs font-semibold mt-0.5 truncate w-32">{user?.industry || "Industry"}</p>
                         </div>
                     </Link>
 
@@ -97,6 +101,7 @@ const BusinessProfilePage = () => {
                     <BusinessProfileHeader />
 
                     <BusinessSummaryCard />
+                    <MonthlyAnalysisCard />
                     <BusinessDetailsCard />
                     <FinancialFootprintCard />
                     <AssessmentHistorySummaryCard />

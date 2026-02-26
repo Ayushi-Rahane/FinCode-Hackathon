@@ -10,45 +10,70 @@ const NAV_ITEMS = [
     { label: "Report", to: "/report", icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /> },
 ];
 
-/* ─── Baseline Constants ─── */
-const BASELINE = {
-    avgRevenue: 220000,
-    avgExpense: 140000,
-    proposedEMI: 28000,
-};
-
 const fmt = (n) => {
-    return "$" + n.toLocaleString("en-IN");
+    return "₹" + Math.round(n).toLocaleString("en-IN");
 };
 
-/* ═══════════════════════════════════════════════════════════════ */
+/* ═════════════════════════════════════════════════════════════════ */
 /*  Stress Testing Page                                           */
-/* ═══════════════════════════════════════════════════════════════ */
+/* ═════════════════════════════════════════════════════════════════ */
 const StressTestingPage = () => {
-    const [revenueDrop, setRevenueDrop] = useState(15);
-    const [expenseIncrease, setExpenseIncrease] = useState(10);
+    const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
+
+    // Live averages fallback to 0 safely (from actual Python keys)
+    const avgRevenue = analysisData.avg_monthly_inflow || 0;
+    const avgExpense = analysisData.avg_monthly_outflow || 0;
+
+    // We assume an arbitrary initial proposed EMI for the stress test baseline if no loan page exists
+    const proposedEMI = (avgRevenue - avgExpense) > 0 ? (avgRevenue - avgExpense) * 0.4 : 50000;
+
+    const [revenueDrop, setRevenueDrop] = useState(30);
+    const [expenseIncrease, setExpenseIncrease] = useState(20);
+
+    // Baseline Overall Score
+    const baseScore = analysisData?.scores?.overall || 548;
 
     // Derived stressed values
-    const stressedRevenue = Math.round(BASELINE.avgRevenue * (1 - revenueDrop / 100));
-    const stressedExpense = Math.round(BASELINE.avgExpense * (1 + expenseIncrease / 100));
+    const stressedRevenue = Math.round(avgRevenue * (1 - revenueDrop / 100));
+    const stressedExpense = Math.round(avgExpense * (1 + expenseIncrease / 100));
     const netSurplus = stressedRevenue - stressedExpense;
-    const emiCoverage = BASELINE.proposedEMI > 0 ? (netSurplus / BASELINE.proposedEMI) : 0;
+    const emiCoverage = proposedEMI > 0 ? (netSurplus / proposedEMI) : 0;
     const liquidityBuffer = stressedExpense > 0 ? (netSurplus / stressedExpense) : 0;
 
-    // Risk level
-    const isHighRisk = emiCoverage < 1.5;
-    const isMediumRisk = emiCoverage >= 1.5 && emiCoverage < 2.5;
+    // Predictive Risk Score Recalculation (mock algorithm)
+    // 1. Coverage Penalty: Drop score rapidly if coverage drops below 1.5x, max -150 pts
+    let coveragePenalty = 0;
+    if (emiCoverage < 1.5) {
+        coveragePenalty = Math.min(150, (1.5 - Math.max(0, emiCoverage)) * 100);
+    }
+
+    // 2. Surplus Penalty: If net surplus goes negative, massive tank.
+    let surplusPenalty = 0;
+    if (netSurplus <= 0) {
+        surplusPenalty = 200;
+    }
+
+    const rawStressedScore = baseScore - coveragePenalty - surplusPenalty;
+    const stressedScore = Math.max(300, Math.min(900, Math.round(rawStressedScore))); // floor at 300
+
+    // Risk level strictly tied to score drop or coverage collapse
+    const isHighRisk = emiCoverage < 1.0 || netSurplus < 0 || stressedScore < 500;
+    const isMediumRisk = !isHighRisk && (emiCoverage < 1.5 || stressedScore < 650);
 
     const riskLabel = isHighRisk ? "High Risk" : isMediumRisk ? "Medium Risk" : "Low Risk";
     const riskColor = isHighRisk ? "red" : isMediumRisk ? "orange" : "green";
     const riskMessage = isHighRisk
-        ? "EMI coverage is dangerously thin. The business would face significant financial strain."
+        ? "Surplus collapses below EMI obligations or predictive score crashes to high-risk thresholds. The business would face significant financial strain and potential default."
         : isMediumRisk
-            ? "EMI coverage is moderate. The business may face some strain under adverse conditions."
-            : "EMI coverage is healthy. The business can comfortably withstand this stress scenario.";
+            ? "EMI coverage is moderate and credit score drops. The business may face some strain under adverse conditions, but technically clears obligations."
+            : "EMI coverage remains healthy and score stays resilient. The business can comfortably withstand this stress scenario.";
 
-    const navigate = useNavigate();
-    const handleLogout = () => navigate("/login");
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        navigate("/login");
+    };
 
     return (
         <div className="min-h-screen flex bg-gray-50">
@@ -71,10 +96,16 @@ const StressTestingPage = () => {
 
                     {/* Profile */}
                     <Link to="/profile" className="flex items-center gap-3 px-3 py-3 mb-4 rounded-xl hover:bg-gray-50 transition-all duration-200 group">
-                        <div className="w-9 h-9 bg-[#1B2F6E] rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">A</div>
+                        <div className="w-9 h-9 bg-[#1B2F6E] rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">
+                            {user?.businessName ? user.businessName.charAt(0).toUpperCase() : "U"}
+                        </div>
                         <div>
-                            <p className="text-gray-900 font-bold text-sm group-hover:text-[#1B2F6E] transition-colors">Apex Trading Co.</p>
-                            <p className="text-gray-400 text-xs">Retail & E-Commerce</p>
+                            <p className="text-gray-900 font-bold text-sm group-hover:text-[#1B2F6E] transition-colors truncate w-32">
+                                {user?.businessName || "Your Business"}
+                            </p>
+                            <p className="text-gray-400 text-xs truncate w-32">
+                                {user?.industry || "Industry"}
+                            </p>
                         </div>
                     </Link>
 
@@ -172,11 +203,11 @@ const StressTestingPage = () => {
 
                         {/* Baseline Figures */}
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-5" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Baseline Figures</h3>
+                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-5" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Live PDF Baselines</h3>
                             <div className="flex flex-col gap-4">
-                                <Row label="Avg Monthly Revenue" value={fmt(BASELINE.avgRevenue)} />
-                                <Row label="Avg Monthly Expense" value={fmt(BASELINE.avgExpense)} />
-                                <Row label="Proposed EMI" value={fmt(BASELINE.proposedEMI)} />
+                                <Row label="Avg Monthly Revenue" value={fmt(avgRevenue)} />
+                                <Row label="Avg Monthly Expense" value={fmt(avgExpense)} />
+                                <Row label="Proposed EMI (Mock)" value={fmt(proposedEMI)} />
                             </div>
                         </div>
                     </div>
@@ -191,18 +222,37 @@ const StressTestingPage = () => {
                                 ? "bg-orange-50 border-orange-200"
                                 : "bg-green-50 border-green-200"
                             }`}>
-                            <div className="flex items-center gap-2 mb-4">
-                                <svg className={`w-6 h-6 ${riskColor === "red" ? "text-red-500"
-                                    : riskColor === "orange" ? "text-orange-500"
-                                        : "text-green-500"
-                                    }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                </svg>
-                                <h3 className={`text-2xl font-bold ${riskColor === "red" ? "text-red-600"
-                                    : riskColor === "orange" ? "text-orange-600"
-                                        : "text-green-600"
-                                    }`}>{riskLabel}</h3>
+
+                            <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
+                                <div className="flex items-center gap-2">
+                                    <svg className={`w-6 h-6 ${riskColor === "red" ? "text-red-500"
+                                        : riskColor === "orange" ? "text-orange-500"
+                                            : "text-green-500"
+                                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                    <h3 className={`text-2xl font-bold ${riskColor === "red" ? "text-red-600"
+                                        : riskColor === "orange" ? "text-orange-600"
+                                            : "text-green-600"
+                                        }`}>{riskLabel}</h3>
+                                </div>
+
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-3 flex items-center gap-4 shrink-0">
+                                    <div className="flex flex-col">
+                                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wide">Base Score</span>
+                                        <span className="text-gray-900 font-bold text-lg">{baseScore}</span>
+                                    </div>
+                                    <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wide">Stressed Score</span>
+                                        <span className={`font-bold text-2xl ${stressedScore < 500 ? "text-red-600" : stressedScore < 650 ? "text-orange-600" : "text-green-600"
+                                            }`}>{stressedScore}</span>
+                                    </div>
+                                </div>
                             </div>
+
                             <p className="text-gray-700 text-base leading-relaxed" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
                                 {riskMessage}
                             </p>
@@ -251,19 +301,21 @@ const StressTestingPage = () => {
                 </div>
 
                 {/* Risk Warning — full width below both columns */}
-                <div className="mt-8 rounded-2xl border-2 border-red-200 bg-red-50 p-6">
-                    <div className="flex items-start gap-3">
-                        <svg className="w-6 h-6 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                        <div>
-                            <h4 className="text-red-600 font-bold text-base mb-1" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Risk Warning</h4>
-                            <p className="text-gray-700 text-sm leading-relaxed" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                                Under this stress scenario, EMI coverage falls below the safe threshold of 2.0x. Consider reducing the loan amount or extending the tenure to maintain adequate coverage.
-                            </p>
+                {isHighRisk && (
+                    <div className="mt-8 rounded-2xl border-2 border-red-200 bg-red-50 p-6">
+                        <div className="flex items-start gap-3">
+                            <svg className="w-6 h-6 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                            <div>
+                                <h4 className="text-red-600 font-bold text-base mb-1" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Risk Warning</h4>
+                                <p className="text-gray-700 text-sm leading-relaxed" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                                    Under this stress scenario, EMI coverage collapses and your predictive credit score plummets to <strong>{stressedScore} / High Risk</strong>. Consider reducing the loan amount or extending the tenure to maintain adequate safe harbor.
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </main>
         </div>
     );

@@ -6,11 +6,11 @@ const NAV_LINKS = [
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
     { label: "About", href: "#about" },
-    { label: "Login", to: "/login" },   // React Router route
 ];
 
 const Navbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
+    const user = JSON.parse(localStorage.getItem("user") || "null");
 
     return (
         <nav className="w-full bg-white border-b border-gray-100 px-6 py-4">
@@ -51,14 +51,26 @@ const Navbar = () => {
                     )}
                 </div>
 
-                {/* CTA — Dashboard */}
+                {/* CTA — Dashboard / Login */}
                 <div className="hidden md:flex items-center gap-3">
-                    <Link
-                        to="/login"
-                        className="bg-[#1B2F6E] text-white px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-[#12235A] transition-colors duration-200 shadow-sm hover:shadow-md"
-                    >
-                        Dashboard
-                    </Link>
+                    {user ? (
+                        <Link
+                            to="/dashboard"
+                            className="flex items-center gap-2 bg-gray-50 text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors duration-200 border border-gray-100"
+                        >
+                            <div className="w-6 h-6 bg-[#1B2F6E] rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
+                                {user.businessName ? user.businessName.charAt(0).toUpperCase() : "U"}
+                            </div>
+                            <span className="truncate max-w-[120px]">{user.businessName || "Dashboard"}</span>
+                        </Link>
+                    ) : (
+                        <Link
+                            to="/login"
+                            className="bg-[#1B2F6E] text-white px-5 py-2.5 rounded-lg text-base font-semibold hover:bg-[#12235A] transition-colors duration-200 shadow-sm hover:shadow-md"
+                        >
+                            Login
+                        </Link>
+                    )}
                 </div>
 
                 {/* Mobile Hamburger */}
@@ -101,13 +113,26 @@ const Navbar = () => {
                             </a>
                         )
                     )}
-                    <Link
-                        to="/login"
-                        className="bg-[#1B2F6E] text-white px-5 py-2.5 rounded-lg text-sm font-semibold w-fit"
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        Dashboard
-                    </Link>
+                    {user ? (
+                        <Link
+                            to="/dashboard"
+                            className="flex items-center gap-2 bg-gray-50 text-gray-900 px-3 py-2.5 rounded-lg text-sm font-semibold w-fit border border-gray-100 mt-2"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            <div className="w-6 h-6 bg-[#1B2F6E] rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0">
+                                {user.businessName ? user.businessName.charAt(0).toUpperCase() : "U"}
+                            </div>
+                            <span className="truncate max-w-[150px]">{user.businessName || "Dashboard"}</span>
+                        </Link>
+                    ) : (
+                        <Link
+                            to="/login"
+                            className="bg-[#1B2F6E] text-white px-5 py-2.5 rounded-lg text-sm font-semibold w-fit mt-2"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            Login
+                        </Link>
+                    )}
                 </div>
             )}
         </nav>

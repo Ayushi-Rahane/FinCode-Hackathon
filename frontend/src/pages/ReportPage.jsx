@@ -12,29 +12,15 @@ const NAV_ITEMS = [
 
 const FONT = { fontFamily: 'IBM Plex Sans, sans-serif' };
 
-/* ─── Report Data ─── */
-const SCORE_BREAKDOWN = [
-    { metric: "Cash Flow Stability", score: "87%", weight: "25%", contribution: "21.8 pts", status: "Strong" },
-    { metric: "Liquidity Buffer", score: "2.4x", weight: "20%", contribution: "15.2 pts", status: "Moderate" },
-    { metric: "EMI Coverage Ratio", score: "3.1x", weight: "20%", contribution: "18.6 pts", status: "Strong" },
-    { metric: "Payment Discipline", score: "94%", weight: "20%", contribution: "17.8 pts", status: "Good" },
-    { metric: "Revenue Volatility", score: "18%", weight: "15%", contribution: "9.6 pts", status: "Caution" },
-];
+/* ─── Report Data Helpers ─── */
+const fmt = (n) => "₹" + Math.round(n).toLocaleString("en-IN");
 
-const STRESS_RESULTS = [
-    { scenario: "10% Revenue Decline", emiCoverage: "2.6x", cashFlow: "Stable", survival: "12+ months", risk: "Low" },
-    { scenario: "20% Revenue Decline", emiCoverage: "1.9x", cashFlow: "Stressed", survival: "8 months", risk: "Moderate" },
-    { scenario: "30% Revenue Decline", emiCoverage: "1.2x", cashFlow: "Critical", survival: "4 months", risk: "High" },
-];
-
-const LOAN_COMPARISON = [
-    { metric: "Loan Amount", proposed: "₹5,00,000", recommended: "₹3,50,000" },
-    { metric: "Tenure", proposed: "36 months", recommended: "48 months" },
-    { metric: "Interest Rate", proposed: "12%", recommended: "11.5%" },
-    { metric: "Monthly EMI", proposed: "₹16,607", recommended: "₹9,186" },
-    { metric: "EMI Coverage", proposed: "1.4x", recommended: "3.1x" },
-    { metric: "Risk Level", proposed: "High", recommended: "Safe" },
-];
+const calculateEMI = (principal, ratePerAnnum, tenureMonths) => {
+    if (principal <= 0 || tenureMonths <= 0) return 0;
+    if (ratePerAnnum === 0) return principal / tenureMonths;
+    const r = ratePerAnnum / 12 / 100;
+    return (principal * r * Math.pow(1 + r, tenureMonths)) / (Math.pow(1 + r, tenureMonths) - 1);
+};
 
 // KEY_RECOMMENDATIONS removed, using dynamic insightsList now
 
@@ -45,6 +31,72 @@ const ReportPage = () => {
     const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
     const insightsList = analysisData.insights || [];
     const reportRef = useRef(null);
+
+    // Business Overview
+    let analysisPeriod = "Jul – Dec 2025";
+    if (analysisData?.monthly_data && analysisData.monthly_data.length > 0) {
+        const start = analysisData.monthly_data[0].month;
+        const end = analysisData.monthly_data[analysisData.monthly_data.length - 1].month;
+        analysisPeriod = `${start} – ${end}`;
+    }
+    const totalTxns = analysisData?.total_transactions || 1284;
+    const overallScore = analysisData?.scores?.overall || 742;
+
+    // Scores Setup
+    const scores = analysisData?.scores || { overall: 742, stability: 87, liquidity: 80, emi: 90, discipline: 94 };
+    const SCORE_BREAKDOWN = [
+        { metric: "Cash Flow Stability", score: `${scores.stability}/100`, weight: "25%", contribution: `${(scores.stability * 0.25).toFixed(1)} pts`, status: scores.stability >= 70 ? "Strong" : "Caution" },
+        { metric: "Liquidity Buffer", score: `${scores.liquidity}/100`, weight: "20%", contribution: `${(scores.liquidity * 0.20).toFixed(1)} pts`, status: scores.liquidity >= 60 ? "Moderate" : "Caution" },
+        { metric: "EMI Coverage Ratio", score: `${scores.emi}/100`, weight: "20%", contribution: `${(scores.emi * 0.20).toFixed(1)} pts`, status: scores.emi >= 75 ? "Strong" : "Caution" },
+        { metric: "Payment Discipline", score: `${scores.discipline}/100`, weight: "20%", contribution: `${(scores.discipline * 0.20).toFixed(1)} pts`, status: scores.discipline >= 85 ? "Good" : "Caution" },
+    ];
+
+    // Stress Testing Setup
+    const avgRevenue = analysisData.avg_monthly_inflow || 0;
+    const avgExpense = analysisData.avg_monthly_outflow || 0;
+    const STRESS_RESULTS = [10, 20, 30].map(drop => {
+        const sr = Math.round(avgRevenue * (1 - drop / 100));
+        const se = Math.round(avgExpense * 1.2); // Assuming 20% expense increase under stress
+        const ns = sr - se;
+        const assumedEMI = (avgRevenue - avgExpense) > 0 ? (avgRevenue - avgExpense) * 0.4 : 50000;
+        const cov = assumedEMI > 0 ? (ns / assumedEMI) : 0;
+        const emiCoverageText = cov.toFixed(1) + "x";
+        let risk = cov < 1.0 ? "High" : cov < 1.5 ? "Moderate" : "Low";
+        let flow = cov < 1.0 ? "Critical" : cov < 1.5 ? "Stressed" : "Stable";
+        let surv = cov < 1.0 ? "4 months" : cov < 1.5 ? "8 months" : "12+ months";
+        return { scenario: `${drop}% Revenue Decline`, emiCoverage: emiCoverageText, cashFlow: flow, survival: surv, risk: risk };
+    });
+
+    // Loan Comparison Setup
+    const liveNetSurplus = analysisData.net_surplus && analysisData.net_surplus > 0 ? analysisData.net_surplus : 50000;
+    const defaultLoanAmount = Number(user?.loanAmount) || 500000;
+    const defaultTenure = Number(user?.loanTenure) || 24;
+    const interestRate = 12;
+
+    const propEMI = calculateEMI(defaultLoanAmount, interestRate, defaultTenure);
+    const propEmiRatio = liveNetSurplus / (propEMI || 1);
+    const emiBurdenPct = (propEMI / (liveNetSurplus || 1)) * 100;
+    const isRisky = emiBurdenPct > 70;
+    const isSafe = emiBurdenPct < 50;
+
+    let recLoan = defaultLoanAmount, recTenure = defaultTenure, recRate = interestRate, recEMI = propEMI, recEmiRatio = propEmiRatio;
+    if (isRisky) {
+        recTenure = Math.min(60, defaultTenure + 12);
+        recRate = interestRate - 0.5;
+        recEMI = liveNetSurplus * 0.45;
+        const r = recRate / 12 / 100;
+        recLoan = recEMI * (Math.pow(1 + r, recTenure) - 1) / (r * Math.pow(1 + r, recTenure));
+        recEmiRatio = liveNetSurplus / recEMI;
+    }
+
+    const LOAN_COMPARISON = [
+        { metric: "Loan Amount", proposed: fmt(defaultLoanAmount), recommended: fmt(recLoan) },
+        { metric: "Tenure", proposed: `${defaultTenure} months`, recommended: `${recTenure} months` },
+        { metric: "Interest Rate", proposed: `${interestRate}%`, recommended: `${recRate}%` },
+        { metric: "Monthly EMI", proposed: fmt(propEMI), recommended: fmt(recEMI) },
+        { metric: "EMI Coverage", proposed: `${propEmiRatio.toFixed(1)}x`, recommended: `${recEmiRatio.toFixed(1)}x` },
+        { metric: "Risk Level", proposed: isRisky ? "High" : isSafe ? "Safe" : "Moderate", recommended: "Safe" },
+    ];
 
     const handleLogout = () => {
         localStorage.removeItem("user");
@@ -193,11 +245,11 @@ const ReportPage = () => {
                             </div>
                             <div>
                                 <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Analysis Period</p>
-                                <p className="text-gray-900 font-bold text-base" style={FONT}>Jul – Dec 2025</p>
+                                <p className="text-gray-900 font-bold text-base" style={FONT}>{analysisPeriod}</p>
                             </div>
                             <div>
                                 <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Data Points Analyzed</p>
-                                <p className="text-gray-900 font-bold text-base" style={FONT}>1,284 Transactions</p>
+                                <p className="text-gray-900 font-bold text-base" style={FONT}>{totalTxns} Transactions</p>
                             </div>
                         </div>
                     </div>
@@ -214,7 +266,7 @@ const ReportPage = () => {
                             <div className="flex items-center gap-6">
                                 <div className="w-28 h-28 rounded-full border-8 border-[#1B2F6E] flex items-center justify-center bg-blue-50">
                                     <div className="text-center">
-                                        <p className="text-3xl font-extrabold text-[#1B2F6E]">742</p>
+                                        <p className="text-3xl font-extrabold text-[#1B2F6E]">{overallScore}</p>
                                         <p className="text-xs font-bold text-green-600">Good</p>
                                     </div>
                                 </div>
@@ -222,13 +274,13 @@ const ReportPage = () => {
                                     <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Score Range</p>
                                     <p className="text-gray-900 font-bold text-sm" style={FONT}>300 – 900</p>
                                     <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mt-3 mb-1" style={FONT}>Potential Improvement</p>
-                                    <p className="text-[#1B2F6E] font-bold text-sm" style={FONT}>+140 pts → 882</p>
+                                    <p className="text-[#1B2F6E] font-bold text-sm" style={FONT}>+{900 - overallScore} pts → 900</p>
                                 </div>
                             </div>
                             <div className="flex-1 min-w-[200px]">
                                 <div className="w-full bg-gray-100 rounded-full h-4 relative">
                                     <div className="bg-gradient-to-r from-red-500 via-yellow-400 via-green-400 to-green-600 h-4 rounded-full" style={{ width: '100%' }}></div>
-                                    <div className="absolute top-0 h-4 flex items-center" style={{ left: `${((742 - 300) / 600) * 100}%` }}>
+                                    <div className="absolute top-0 h-4 flex items-center" style={{ left: `${((overallScore - 300) / 600) * 100}%` }}>
                                         <div className="w-1 h-6 bg-[#1B2F6E] rounded -mt-1"></div>
                                     </div>
                                 </div>

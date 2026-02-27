@@ -31,8 +31,11 @@ const LoanOptimizationPage = () => {
     const liveNetSurplus = analysisData.net_surplus && analysisData.net_surplus > 0 ? analysisData.net_surplus : 50000;
 
     // Local Component State for the inputs
-    const [loanAmount, setLoanAmount] = useState(500000);
-    const [tenure, setTenure] = useState(24);
+    const defaultLoanAmount = Number(user?.loanAmount) || 500000;
+    const defaultTenure = Number(user?.loanTenure) || 24;
+
+    const [loanAmount, setLoanAmount] = useState(defaultLoanAmount);
+    const [tenure, setTenure] = useState(defaultTenure);
     const [interestRate, setInterestRate] = useState(12);
 
     // Compute Proposed Math

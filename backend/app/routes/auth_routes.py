@@ -42,7 +42,15 @@ def register():
 
         return jsonify({
             "message": "User registered successfully",
-            "userId": str(result.inserted_id)
+            "user": {
+                "id": str(result.inserted_id),
+                "name": new_user["name"],
+                "email": new_user["email"],
+                "businessName": new_user["businessName"],
+                "industry": new_user["industry"],
+                "loanAmount": new_user.get("loanAmount", 500000.0),
+                "loanTenure": new_user.get("loanTenure", 24)
+            }
         }), 201
 
     except Exception as e:
@@ -73,7 +81,9 @@ def login():
                 "name": user.get("name"),
                 "email": user.get("email"),
                 "businessName": user.get("businessName"),
-                "industry": user.get("industry")
+                "industry": user.get("industry"),
+                "loanAmount": user.get("loanAmount", 500000.0),
+                "loanTenure": user.get("loanTenure", 24)
             }
         }), 200
 

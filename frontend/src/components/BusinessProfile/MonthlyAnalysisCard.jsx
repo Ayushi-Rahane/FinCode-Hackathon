@@ -31,11 +31,11 @@ const MonthlyAnalysisCard = () => {
                     </div>
                     <div className="bg-green-50 p-4 rounded-xl border border-green-100">
                         <p className="text-green-600 text-xs font-bold uppercase tracking-wider mb-1">Total Inflow</p>
-                        <p className="text-gray-900 font-bold">{"$" + (analysisData.total_inflow || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p className="text-gray-900 font-bold">{"₹" + (analysisData.total_inflow || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
                     <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                         <p className="text-blue-600 text-xs font-bold uppercase tracking-wider mb-1">Total Outflow</p>
-                        <p className="text-gray-900 font-bold">{"$" + (analysisData.total_outflow || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p className="text-gray-900 font-bold">{"₹" + (analysisData.total_outflow || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
                 </div>
 
@@ -55,13 +55,13 @@ const MonthlyAnalysisCard = () => {
                                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{row.month}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right font-semibold text-green-600">
-                                        +${(row.inflow || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        +₹{(row.inflow || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right font-medium text-gray-600">
-                                        -${(row.outflow || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        -₹{(row.outflow || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
                                     <td className={`px-6 py-4 whitespace-nowrap text-right font-bold ${row.net_surplus >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {row.net_surplus >= 0 ? '+' : '-'}${Math.abs(row.net_surplus || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        {row.net_surplus >= 0 ? '+' : '-'}₹{Math.abs(row.net_surplus || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
                                 </tr>
                             ))}
@@ -81,7 +81,7 @@ const MonthlyAnalysisCard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {/* 1. Net Monthly Surplus */}
                         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <div className="absolute top-0 right-0 p-4 opacity-20">
                                 <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                                 </svg>
@@ -89,7 +89,7 @@ const MonthlyAnalysisCard = () => {
                             <h5 className="text-gray-500 text-xs font-bold uppercase tracking-wide mb-2">Net Monthly Surplus</h5>
                             <div className="flex items-baseline gap-2">
                                 <span className="text-2xl font-black text-gray-900">
-                                    {"$" + (analysisData.net_surplus || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    {"₹" + (analysisData.net_surplus || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                 </span>
                             </div>
                             <p className="text-gray-400 text-xs mt-2 font-medium">Avg Inflow - Avg Outflow</p>
@@ -97,7 +97,7 @@ const MonthlyAnalysisCard = () => {
 
                         {/* 2. Revenue Volatility */}
                         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <div className="absolute top-0 right-0 p-4 opacity-20">
                                 <svg className="w-12 h-12 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />
                                 </svg>
@@ -105,7 +105,7 @@ const MonthlyAnalysisCard = () => {
                             <h5 className="text-gray-500 text-xs font-bold uppercase tracking-wide mb-2">Revenue Volatility</h5>
                             <div className="flex items-baseline gap-2">
                                 <span className={`text-2xl font-black ${analysisData.seasonality_indicator === 'High Variation' ? 'text-red-600' : 'text-gray-900'}`}>
-                                    {"$" + (analysisData.volatility || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    {"₹" + (analysisData.volatility || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                 </span>
                             </div>
                             <p className="text-gray-400 text-xs mt-2 font-medium">Standard deviation of inflow</p>
@@ -113,7 +113,7 @@ const MonthlyAnalysisCard = () => {
 
                         {/* 3. Liquidity Strength */}
                         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <div className="absolute top-0 right-0 p-4 opacity-20">
                                 <svg className="w-12 h-12 text-teal-600" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8zM7.83 14c.37 0 .67.26.74.62 1.41-1.54 3.53-2.18 5.6-2.18 1.46 0 2.87.35 4 .92-1.57-2.92-5.4-4.8-10.34-1.36z" />
                                 </svg>
@@ -129,7 +129,7 @@ const MonthlyAnalysisCard = () => {
 
                         {/* 4. Cash Flow Consistency */}
                         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <div className="absolute top-0 right-0 p-4 opacity-20">
                                 <svg className="w-12 h-12 text-sky-600" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v-2h2V5h2v5h2v2zm4 4h-6v-2h6v2zm2-4h-8v-2h8v2z" />
                                 </svg>

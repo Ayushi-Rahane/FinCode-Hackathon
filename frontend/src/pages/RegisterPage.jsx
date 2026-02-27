@@ -91,7 +91,8 @@ const StepBusinessProfile = ({ onContinue }) => {
                 throw new Error(data.error || "Failed to register");
             }
 
-            // Success! Save user id if needed: localStorage.setItem('userId', data.userId);
+            // Success! Save user to localStorage
+            localStorage.setItem("user", JSON.stringify(data.user));
             onContinue();
         } catch (err) {
             setError(err.message);
@@ -155,7 +156,7 @@ const StepBusinessProfile = ({ onContinue }) => {
                         <button
                             onClick={handleContinue}
                             disabled={loading}
-                            className={`w - full py - 3.5 rounded - lg font - bold text - base transition - all duration - 200 shadow - md flex items - center justify - center gap - 2 mt - 2 ${loading ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#1B2F6E] text-white hover:bg-[#12235A] hover:shadow-lg'} `}
+                            className={`w-full py-3.5 rounded-lg font-bold text-base transition-all duration-200 shadow-md flex items-center justify-center gap-2 mt-2 ${loading ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-[#1B2F6E] text-white hover:bg-[#12235A] hover:shadow-lg'}`}
                         >
                             {loading ? "Registering..." : "Continue to Upload"}
                             {!loading && (
@@ -369,10 +370,10 @@ const StepUpload = ({ onBeginAnalysis }) => {
                 <button
                     onClick={onBeginAnalysis}
                     disabled={!allDone || !analysisData}
-                    className={`w - full mt - 6 py - 3.5 rounded - lg font - bold text - base flex items - center justify - center gap - 2 transition - all duration - 200 ${allDone && analysisData
+                    className={`w-full mt-6 py-3.5 rounded-lg font-bold text-base flex items-center justify-center gap-2 transition-all duration-200 ${allDone && analysisData
                         ? "bg-[#1B2F6E] text-white hover:bg-[#12235A] shadow-md hover:shadow-lg"
                         : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        } `}
+                        }`}
                 >
                     Generate Credit Assessment
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -453,20 +454,20 @@ const StepAnalyzing = ({ onComplete }) => {
                         return (
                             <div
                                 key={step.title}
-                                className={`flex items - center gap - 4 px - 5 py - 4 rounded - xl border transition - all duration - 300 ${isActive
+                                className={`flex items-center gap-4 px-5 py-4 rounded-xl border transition-all duration-300 ${isActive
                                     ? "bg-blue-50 border-[#1B2F6E] shadow-sm"
                                     : isDone
                                         ? "bg-white border-gray-100"
                                         : "bg-white border-gray-100 opacity-40"
-                                    } `}
+                                    }`}
                             >
-                                <div className={`w - 9 h - 9 rounded - lg flex items - center justify - center shrink - 0 ${isActive || isDone ? "bg-[#1B2F6E] text-white" : "bg-gray-100 text-gray-400"
-                                    } `}>
+                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${isActive || isDone ? "bg-[#1B2F6E] text-white" : "bg-gray-100 text-gray-400"
+                                    }`}>
                                     {step.icon}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className={`font - bold text - sm ${isPending ? "text-gray-400" : "text-gray-900"} `}>{step.title}</p>
-                                    <p className={`text - xs ${isPending ? "text-gray-300" : "text-gray-500"} `}>{step.subtitle}</p>
+                                    <p className={`font-bold text-sm ${isPending ? "text-gray-400" : "text-gray-900"}`}>{step.title}</p>
+                                    <p className={`text-xs ${isPending ? "text-gray-300" : "text-gray-500"}`}>{step.subtitle}</p>
                                 </div>
                                 {isDone && (
                                     <svg className="w-5 h-5 text-[#1B2F6E] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -492,7 +493,7 @@ const Field = ({ label, prefix, ...props }) => (
             {prefix && <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{prefix}</span>}
             <input
                 {...props}
-                className={`w - full border border - gray - 200 rounded - lg ${prefix ? "pl-8" : "px-4"} pr - 4 py - 3 text - gray - 900 text - sm placeholder - gray - 400 focus: outline - none focus: ring - 2 focus: ring - [#1B2F6E] focus: border - transparent transition`}
+                className={`w-full border border-gray-200 rounded-lg ${prefix ? "pl-8" : "px-4"} pr-4 py-3 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B2F6E] focus:border-transparent transition`}
             />
         </div>
     </div>

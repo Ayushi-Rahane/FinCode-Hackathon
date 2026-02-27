@@ -1,7 +1,7 @@
 # Credalytix: AI-Powered Credit Assessment Platform
 
 ## Video Demonstration
-**Watch the full platform walkthrough:** [Insert Google Drive Video Link Here]
+**Watch the full platform walkthrough:** [LINK](https://drive.google.com/file/d/1x5wfv8MxOR2Q0oCBy-rYehW8YUmNcyoT/view?usp=sharing)
 
 ## Overview
 Credalytix is an advanced financial data analysis platform engineered to automate and optimize the credit risk assessment process for Micro, Small, and Medium Enterprises (MSMEs). By extracting transactional data directly from raw bank statement PDFs, the platform calculates critical cash flow metrics, predicts default probabilities, simulates adverse financial scenarios, and leverages Generative AI to provide personalized risk narratives—all within seconds.
@@ -78,4 +78,4 @@ fincode-hackathon/
 ```
 
 ## Setup Instructions
-Please refer to the `SETUP_GUIDE.md` for explicit instructions on configuring the Python environment, installing Node packages, establishing the local MongoDB connection, and acquiring necessary API keys.
+Please refer to the [`SETUP_GUIDE.md`](https://github.com/Ayushi-Rahane/FinCode-Hackathon/blob/main/SETUP_GUIDE.md)  for explicit instructions on configuring the Python environment, installing Node packages, establishing the local MongoDB connection, and acquiring necessary API keys.

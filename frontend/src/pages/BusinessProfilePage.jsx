@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BusinessProfileHeader from "../components/BusinessProfile/BusinessProfileHeader";
 import BusinessSummaryCard from "../components/BusinessProfile/BusinessSummaryCard";
@@ -20,11 +20,18 @@ const NAV_ITEMS = [
 
 const BusinessProfilePage = () => {
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem("user");
         navigate("/login");
+    };
+
+    const handleSaveProfile = (updatedUser) => {
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        setIsEditModalOpen(false);
     };
 
     return (
@@ -100,15 +107,138 @@ const BusinessProfilePage = () => {
                 <div className="max-w-[1200px]">
                     <BusinessProfileHeader />
 
-                    <BusinessSummaryCard />
+                    <BusinessSummaryCard onEditProfile={() => setIsEditModalOpen(true)} />
                     <MonthlyAnalysisCard />
                     <BusinessDetailsCard />
                     <FinancialFootprintCard />
                     <AssessmentHistorySummaryCard />
                     <BusinessHealthSnapshotCard />
-                    <AccountSettingsCard />
+                    <AccountSettingsCard onEditProfile={() => setIsEditModalOpen(true)} />
                 </div>
             </main>
+
+            {/* ── Edit Profile Modal ── */}
+            {isEditModalOpen && (
+                <EditProfileModal
+                    user={user}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSave={handleSaveProfile}
+                />
+            )}
+        </div>
+    );
+};
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  Edit Profile Modal Component                                      */
+/* ═══════════════════════════════════════════════════════════════════ */
+const EditProfileModal = ({ user, onClose, onSave }) => {
+    const [form, setForm] = useState({
+        name: user.name || "",
+        businessName: user.businessName || "",
+        industry: user.industry || "",
+        registrationType: user.registrationType || "",
+        yearsInOperation: user.yearsInOperation || "",
+        loanAmount: user.loanAmount || "",
+        loanTenure: user.loanTenure || "",
+        brn: user.brn || "",
+        gstNumber: user.gstNumber || "",
+        panNumber: user.panNumber || "",
+        bankAccount: user.bankAccount || "",
+    });
+
+    const INDUSTRIES = [
+        "Manufacturing", "Retail", "Technology", "Healthcare",
+        "Construction", "Food & Beverage", "Transportation",
+        "Professional Services", "Agriculture", "Other",
+    ];
+
+    const REGISTRATION_TYPES = [
+        "Sole Proprietorship", "Partnership", "LLP", "Private Limited", "One Person Company"
+    ];
+
+    const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+    const handleSave = () => {
+        onSave({ ...user, ...form });
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                    <h3 className="text-xl font-bold text-gray-900">Edit Business Profile</h3>
+                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+
+                <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-5">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-gray-700 text-sm font-semibold">Full Name</label>
+                        <input value={form.name} onChange={set("name")} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2F6E]" />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-gray-700 text-sm font-semibold">Business Name</label>
+                        <input value={form.businessName} onChange={set("businessName")} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2F6E]" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-gray-700 text-sm font-semibold">Industry Type</label>
+                            <select value={form.industry} onChange={set("industry")} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1B2F6E] appearance-none">
+                                <option value="">Select</option>
+                                {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-gray-700 text-sm font-semibold">Registration Type</label>
+                            <select value={form.registrationType} onChange={set("registrationType")} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1B2F6E] appearance-none">
+                                <option value="">Select</option>
+                                {REGISTRATION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-gray-700 text-sm font-semibold">Years in Operation</label>
+                        <input type="number" value={form.yearsInOperation} onChange={set("yearsInOperation")} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2F6E]" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-gray-700 text-sm font-semibold">Loan Amount (₹)</label>
+                            <input type="number" value={form.loanAmount} onChange={set("loanAmount")} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2F6E]" />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-gray-700 text-sm font-semibold">Loan Tenure (m)</label>
+                            <input type="number" value={form.loanTenure} onChange={set("loanTenure")} className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2F6E]" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-gray-700 text-sm font-semibold">Business Registration Number</label>
+                            <input value={form.brn} onChange={set("brn")} placeholder="e.g. BRN/MH/2019/..." className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2F6E]" />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-gray-700 text-sm font-semibold">GST Number</label>
+                            <input value={form.gstNumber} onChange={set("gstNumber")} placeholder="e.g. 27AABCT..." className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2F6E]" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-gray-700 text-sm font-semibold">PAN Number</label>
+                            <input value={form.panNumber} onChange={set("panNumber")} placeholder="e.g. AABCT****F" className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2F6E]" />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-gray-700 text-sm font-semibold">Primary Bank Account</label>
+                            <input value={form.bankAccount} onChange={set("bankAccount")} placeholder="e.g. HDFC Bank •••• 4567" className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B2F6E]" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 sticky bottom-0 bg-white">
+                    <button onClick={onClose} className="px-5 py-2.5 text-gray-600 font-semibold hover:bg-gray-100 rounded-lg transition-colors text-sm">Cancel</button>
+                    <button onClick={handleSave} className="px-5 py-2.5 bg-[#1B2F6E] text-white font-semibold hover:bg-[#12235A] rounded-lg shadow-sm transition-colors text-sm">Save Changes</button>
+                </div>
+            </div>
         </div>
     );
 };

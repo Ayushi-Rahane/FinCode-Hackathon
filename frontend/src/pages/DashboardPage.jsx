@@ -25,7 +25,9 @@ const ICONS = {
 /* ─── Gauge Component ─── */
 const CreditGauge = ({ score }) => {
     const min = 300, max = 900;
-    const pct = (score - min) / (max - min);
+    // Clamp score to min so gauge doesn't break at 0
+    const clampedScore = Math.max(min, Math.min(max, score));
+    const pct = (clampedScore - min) / (max - min);
     const startAngle = -210;
     const sweep = 240;
     const angle = startAngle + pct * sweep;
@@ -56,6 +58,34 @@ const CreditGauge = ({ score }) => {
     };
     const largeArcFlag = pct * sweep > 180 ? 1 : 0;
 
+    // Dynamic label and color based on score
+    let label, labelColor, arcColor;
+    if (score <= 0) {
+        label = "Not Assessed";
+        labelColor = "text-gray-400";
+        arcColor = "#D1D5DB";
+    } else if (score < 500) {
+        label = "Poor";
+        labelColor = "text-red-500";
+        arcColor = "#EF4444";
+    } else if (score < 600) {
+        label = "Below Average";
+        labelColor = "text-orange-500";
+        arcColor = "#F97316";
+    } else if (score < 700) {
+        label = "Fair";
+        labelColor = "text-yellow-500";
+        arcColor = "#EAB308";
+    } else if (score < 800) {
+        label = "Good";
+        labelColor = "text-[#0096FF]";
+        arcColor = "#0096FF";
+    } else {
+        label = "Excellent";
+        labelColor = "text-green-500";
+        arcColor = "#22C55E";
+    }
+
     return (
         <div className="flex flex-col items-center">
             <svg viewBox="0 0 260 180" className="w-64 h-44">
@@ -64,21 +94,25 @@ const CreditGauge = ({ score }) => {
                     d={`M ${arcStart.x} ${arcStart.y} A ${r} ${r} 0 1 1 ${arcEnd.x} ${arcEnd.y}`}
                     fill="none" stroke="#E5E7EB" strokeWidth="14" strokeLinecap="round"
                 />
-                {/* Progress arc */}
-                <path
-                    d={`M ${arcStart.x} ${arcStart.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${progressEnd.x} ${progressEnd.y}`}
-                    fill="none" stroke="#5B8DEF" strokeWidth="14" strokeLinecap="round"
-                />
+                {/* Progress arc — only render if score > 0 */}
+                {score > 0 && (
+                    <path
+                        d={`M ${arcStart.x} ${arcStart.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${progressEnd.x} ${progressEnd.y}`}
+                        fill="none" stroke={arcColor} strokeWidth="14" strokeLinecap="round"
+                    />
+                )}
                 {/* Needle */}
                 <line x1={cx} y1={cy} x2={needleTip.x} y2={needleTip.y}
                     stroke="#374151" strokeWidth="2.5" strokeLinecap="round" />
                 <circle cx={cx} cy={cy} r="5" fill="#374151" />
                 {/* Dot at progress end */}
-                <circle cx={progressEnd.x} cy={progressEnd.y} r="6" fill="#5B8DEF" />
+                {score > 0 && (
+                    <circle cx={progressEnd.x} cy={progressEnd.y} r="6" fill={arcColor} />
+                )}
             </svg>
             <div className="text-center -mt-4">
                 <p className="text-5xl font-extrabold text-[#1B2F6E]">{score}</p>
-                <p className="text-green-600 font-bold text-base mt-1">Good</p>
+                <p className={`${labelColor} font-bold text-base mt-1`}>{label}</p>
                 <p className="text-gray-400 text-sm mt-0.5">Score Range: 300 – 900</p>
             </div>
         </div>
@@ -92,8 +126,9 @@ const DashboardPage = () => {
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
+    const hasData = Object.keys(analysisData).length > 0;
 
-    const scores = analysisData?.scores || { overall: 742, stability: 87, liquidity: 80, emi: 90, discipline: 94 };
+    const scores = analysisData?.scores || { overall: 0, stability: 0, liquidity: 0, emi: 0, discipline: 0 };
 
     const dynamicMetrics = [
         {
@@ -214,118 +249,129 @@ const DashboardPage = () => {
 
             {/* ── Main Content ── */}
             <main className="flex-1 px-8 py-8 overflow-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-1">Credit Risk Dashboard</h1>
-                    <p className="text-gray-500 text-base">Comprehensive risk assessment based on your cash flow analysis.</p>
-                </div>
-
-                {/* Overall Risk Score Card */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-gray-900">Overall Risk Score</h2>
-                        <span className="text-[#1B2F6E] text-sm font-semibold bg-blue-50 px-3 py-1.5 rounded-lg">Updated: {new Intl.DateTimeFormat('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())}</span>
+                {!hasData ? (
+                    <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 text-center max-w-md mx-auto mt-20">
+                        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">No Assessment Data</h2>
+                        <p className="text-gray-500 mb-6">You haven't uploaded any bank statements yet. Please upload to generate your assessment.</p>
+                        <Link to="/register?step=2" className="bg-[#1B2F6E] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#12235A] transition-colors inline-block">Upload Statements</Link>
                     </div>
-                    <CreditGauge score={scores.overall} />
-                </div>
-
-                {/* Metric Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-                    {dynamicMetrics.map(({ value, unit, label, description, change, positive, iconPath }) => (
-                        <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-6">
-                            {/* Top row — icon + trend */}
-                            <div className="flex items-center justify-between mb-5">
-                                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                                    <svg className="w-5 h-5 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        {iconPath}
-                                    </svg>
-                                </div>
-                                <svg className="w-5 h-5 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                </svg>
-                            </div>
-
-                            {/* Value */}
-                            <div className="flex items-baseline gap-0.5 mb-2">
-                                <span className="text-4xl font-extrabold text-gray-900">{value}</span>
-                                <span className="text-xl font-bold text-gray-400">{unit}</span>
-                            </div>
-
-                            {/* Label */}
-                            <p className="text-gray-900 font-bold text-base mb-2">{label}</p>
-
-                            {/* Description */}
-                            <p className="text-gray-600 text-sm leading-relaxed mb-4" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>{description}</p>
-
-                            {/* Change */}
-                            <p className={`text-sm font-semibold ${positive ? "text-green-600" : "text-red-500"}`}>
-                                {change}
-                            </p>
+                ) : (
+                    <div className="max-w-[1200px]">
+                        {/* Header */}
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-bold text-gray-900 mb-1">Credit Risk Dashboard</h1>
+                            <p className="text-gray-500 text-base">Comprehensive risk assessment based on your cash flow analysis.</p>
                         </div>
-                    ))}
-                </div>
 
-                {/* ── Charts Row ── */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                        {/* Overall Risk Score Card */}
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-gray-900">Overall Risk Score</h2>
+                                <span className="text-[#1B2F6E] text-sm font-semibold bg-blue-50 px-3 py-1.5 rounded-lg">Updated: {new Intl.DateTimeFormat('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date())}</span>
+                            </div>
+                            <CreditGauge score={scores.overall} />
+                        </div>
 
-                    {/* Revenue vs Expense */}
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-6" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Revenue vs Expense</h3>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={chartRevenueData} barGap={4} barCategoryGap="25%">
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
-                                <XAxis
-                                    dataKey="month" axisLine={false} tickLine={false}
-                                    tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
-                                />
-                                <YAxis
-                                    axisLine={false} tickLine={false}
-                                    tickFormatter={(v) => `₹${v / 1000}k`}
-                                    tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
-                                />
-                                <Tooltip
-                                    formatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-                                    contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13 }}
-                                />
-                                <Legend
-                                    iconType="square" iconSize={12}
-                                    wrapperStyle={{ fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13, paddingTop: 12 }}
-                                />
-                                <Bar dataKey="revenue" name="Revenue" fill="#1B2F6E" radius={[4, 4, 0, 0]} barSize={22} />
-                                <Bar dataKey="expense" name="Expense" fill="#93B5F7" radius={[4, 4, 0, 0]} barSize={22} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {/* Metric Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                            {dynamicMetrics.map(({ value, unit, label, description, change, positive, iconPath }) => (
+                                <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-6">
+                                    {/* Top row — icon + trend */}
+                                    <div className="flex items-center justify-between mb-5">
+                                        <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                {iconPath}
+                                            </svg>
+                                        </div>
+                                        <svg className="w-5 h-5 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                        </svg>
+                                    </div>
+
+                                    {/* Value */}
+                                    <div className="flex items-baseline gap-0.5 mb-2">
+                                        <span className="text-4xl font-extrabold text-gray-900">{value}</span>
+                                        <span className="text-xl font-bold text-gray-400">{unit}</span>
+                                    </div>
+
+                                    {/* Label */}
+                                    <p className="text-gray-900 font-bold text-base mb-2">{label}</p>
+
+                                    {/* Description */}
+                                    <p className="text-gray-600 text-sm leading-relaxed mb-4" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>{description}</p>
+
+                                    {/* Change */}
+                                    <p className={`text-sm font-semibold ${positive ? "text-green-600" : "text-red-500"}`}>
+                                        {change}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* ── Charts Row ── */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+
+                            {/* Revenue vs Expense */}
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                                <h3 className="text-lg font-bold text-gray-900 mb-6" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Revenue vs Expense</h3>
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <BarChart data={chartRevenueData} barGap={4} barCategoryGap="25%">
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
+                                        <XAxis
+                                            dataKey="month" axisLine={false} tickLine={false}
+                                            tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
+                                        />
+                                        <YAxis
+                                            axisLine={false} tickLine={false}
+                                            tickFormatter={(v) => `₹${v / 1000}k`}
+                                            tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
+                                        />
+                                        <Tooltip
+                                            formatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                                            contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13 }}
+                                        />
+                                        <Legend
+                                            iconType="square" iconSize={12}
+                                            wrapperStyle={{ fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13, paddingTop: 12 }}
+                                        />
+                                        <Bar dataKey="revenue" name="Revenue" fill="#1B2F6E" radius={[4, 4, 0, 0]} barSize={22} />
+                                        <Bar dataKey="expense" name="Expense" fill="#93B5F7" radius={[4, 4, 0, 0]} barSize={22} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            {/* Monthly Net Surplus */}
+                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                                <h3 className="text-lg font-bold text-gray-900 mb-6" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Monthly Net Surplus Trend</h3>
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <LineChart data={chartNetSurplusData}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
+                                        <XAxis
+                                            dataKey="month" axisLine={false} tickLine={false}
+                                            tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
+                                        />
+                                        <YAxis
+                                            axisLine={false} tickLine={false}
+                                            tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                                            tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
+                                        />
+                                        <Tooltip
+                                            formatter={(v) => `₹${v.toFixed(0)}`}
+                                            contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13 }}
+                                        />
+                                        <Line
+                                            type="monotone" dataKey="surplus" name="Net Surplus"
+                                            stroke="#1B2F6E" strokeWidth={2.5}
+                                            dot={{ r: 5, fill: '#1B2F6E', stroke: '#fff', strokeWidth: 2 }}
+                                            activeDot={{ r: 7, fill: '#1B2F6E' }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
                     </div>
-
-                    {/* Monthly Net Surplus */}
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-6" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Monthly Net Surplus Trend</h3>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={chartNetSurplusData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
-                                <XAxis
-                                    dataKey="month" axisLine={false} tickLine={false}
-                                    tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
-                                />
-                                <YAxis
-                                    axisLine={false} tickLine={false}
-                                    tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-                                    tick={{ fill: '#6B7280', fontSize: 13, fontFamily: 'IBM Plex Sans, sans-serif' }}
-                                />
-                                <Tooltip
-                                    formatter={(v) => `₹${v.toFixed(0)}`}
-                                    contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 13 }}
-                                />
-                                <Line
-                                    type="monotone" dataKey="surplus" name="Net Surplus"
-                                    stroke="#1B2F6E" strokeWidth={2.5}
-                                    dot={{ r: 5, fill: '#1B2F6E', stroke: '#fff', strokeWidth: 2 }}
-                                    activeDot={{ r: 7, fill: '#1B2F6E' }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+                )}
             </main>
         </div>
     );

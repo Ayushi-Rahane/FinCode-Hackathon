@@ -9,6 +9,7 @@ import LoanOptimizationPage from "./pages/LoanOptimizationPage";
 import InsightsPage from "./pages/InsightsPage";
 import ReportPage from "./pages/ReportPage";
 import BusinessProfilePage from "./pages/BusinessProfilePage";
+import AIChatWidget from "./components/AIChatWidget";
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/profile" element={<BusinessProfilePage />} />
 
             </Routes>
+            <AIChatWidget />
         </BrowserRouter>
     );
 }

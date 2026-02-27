@@ -26,6 +26,7 @@ const LoanOptimizationPage = () => {
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
+    const hasData = Object.keys(analysisData).length > 0;
 
     // Live Net Surplus from the PDF. If NaN or empty, default to 50000 
     const liveNetSurplus = analysisData.net_surplus && analysisData.net_surplus > 0 ? analysisData.net_surplus : 50000;
@@ -161,228 +162,239 @@ const LoanOptimizationPage = () => {
 
             {/* ── Main Content ── */}
             <main className="flex-1 px-10 py-10 overflow-auto">
-                <div className="mb-0">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">Loan Optimization</h1>
-                    <p className="text-gray-500 text-lg" style={FONT}>
-                        Compare your proposed loan with our AI-recommended safe alternative based on your real Net Surplus of <span className="font-bold text-[#1B2F6E]">{fmt(liveNetSurplus)}/mo</span>.
-                    </p>
-                </div>
+                {!hasData ? (
+                    <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 text-center max-w-md mx-auto mt-20">
+                        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">No Assessment Data</h2>
+                        <p className="text-gray-500 mb-6">You haven't uploaded any bank statements yet. Please upload to generate your assessment.</p>
+                        <Link to="/register?step=2" className="bg-[#1B2F6E] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#12235A] transition-colors inline-block">Upload Statements</Link>
+                    </div>
+                ) : (
+                    <>
+                        <div className="mb-0">
+                            <h1 className="text-4xl font-bold text-gray-900 mb-2">Loan Optimization</h1>
+                            <p className="text-gray-500 text-lg" style={FONT}>
+                                Compare your proposed loan with our AI-recommended safe alternative based on your real Net Surplus of <span className="font-bold text-[#1B2F6E]">{fmt(liveNetSurplus)}/mo</span>.
+                            </p>
+                        </div>
 
-                {/* ── Inputs ── */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-8 mt-8 flex flex-wrap gap-6 items-end">
-                    <div className="flex-1 min-w-[200px]">
-                        <label className="block text-sm font-bold text-gray-700 mb-2" style={FONT}>Proposed Loan Amount (₹)</label>
-                        <input
-                            type="number"
-                            value={loanAmount}
-                            onChange={(e) => setLoanAmount(Number(e.target.value))}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 font-bold focus:ring-2 focus:ring-[#1B2F6E]/50 focus:border-[#1B2F6E] outline-none"
-                            style={FONT}
-                        />
-                    </div>
-                    <div className="flex-1 min-w-[200px]">
-                        <label className="block text-sm font-bold text-gray-700 mb-2" style={FONT}>Tenure (Months)</label>
-                        <input
-                            type="number"
-                            value={tenure}
-                            onChange={(e) => setTenure(Number(e.target.value))}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 font-bold focus:ring-2 focus:ring-[#1B2F6E]/50 focus:border-[#1B2F6E] outline-none"
-                            style={FONT}
-                        />
-                    </div>
-                    <div className="flex-1 min-w-[200px]">
-                        <label className="block text-sm font-bold text-gray-700 mb-2" style={FONT}>Interest Rate (%)</label>
-                        <input
-                            type="number"
-                            value={interestRate}
-                            onChange={(e) => setInterestRate(Number(e.target.value))}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 font-bold focus:ring-2 focus:ring-[#1B2F6E]/50 focus:border-[#1B2F6E] outline-none"
-                            style={FONT}
-                        />
-                    </div>
-                </div>
+                        {/* ── Inputs ── */}
+                        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-8 mt-8 flex flex-wrap gap-6 items-end">
+                            <div className="flex-1 min-w-[200px]">
+                                <label className="block text-sm font-bold text-gray-700 mb-2" style={FONT}>Proposed Loan Amount (₹)</label>
+                                <input
+                                    type="number"
+                                    value={loanAmount}
+                                    onChange={(e) => setLoanAmount(Number(e.target.value))}
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 font-bold focus:ring-2 focus:ring-[#1B2F6E]/50 focus:border-[#1B2F6E] outline-none"
+                                    style={FONT}
+                                />
+                            </div>
+                            <div className="flex-1 min-w-[200px]">
+                                <label className="block text-sm font-bold text-gray-700 mb-2" style={FONT}>Tenure (Months)</label>
+                                <input
+                                    type="number"
+                                    value={tenure}
+                                    onChange={(e) => setTenure(Number(e.target.value))}
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 font-bold focus:ring-2 focus:ring-[#1B2F6E]/50 focus:border-[#1B2F6E] outline-none"
+                                    style={FONT}
+                                />
+                            </div>
+                            <div className="flex-1 min-w-[200px]">
+                                <label className="block text-sm font-bold text-gray-700 mb-2" style={FONT}>Interest Rate (%)</label>
+                                <input
+                                    type="number"
+                                    value={interestRate}
+                                    onChange={(e) => setInterestRate(Number(e.target.value))}
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 font-bold focus:ring-2 focus:ring-[#1B2F6E]/50 focus:border-[#1B2F6E] outline-none"
+                                    style={FONT}
+                                />
+                            </div>
+                        </div>
 
-                {/* ── Loan Comparison Cards ── */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    {/* Your Proposed Loan */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900" style={FONT}>Your Proposed Loan</h2>
-                            <span className={`px-4 py-1.5 rounded-full text-sm font-bold ${isRisky ? 'bg-red-100 text-red-700' : isSafe ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`} style={FONT}>
-                                {isRisky ? 'High Risk' : isSafe ? 'Safe' : 'Moderate'}
-                            </span>
-                        </div>
-                        <p className="text-gray-500 text-sm mb-1" style={FONT}>Loan Amount</p>
-                        <p className="text-3xl font-bold text-gray-900 mb-5" style={FONT}>{fmt(loanAmount)}</p>
-                        <div className="flex gap-12 mb-6">
-                            <div>
-                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Tenure</p>
-                                <p className="text-lg font-bold text-gray-900" style={FONT}>{tenure} months</p>
-                            </div>
-                            <div>
-                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Monthly EMI</p>
-                                <p className="text-lg font-bold text-gray-900" style={FONT}>{fmt(proposedEMI)}</p>
-                            </div>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl p-4 mb-5">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-gray-600 text-sm font-medium" style={FONT}>EMI consumes {emiBurdenPct.toFixed(0)}% of Surplus</span>
-                                <span className={`text-xl font-bold ${isRisky ? 'text-red-600' : 'text-[#1B2F6E]'}`} style={FONT}>{proposedEmiRatio.toFixed(1)}x Cov.</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                <div className={`${isRisky ? 'bg-red-500' : isSafe ? 'bg-green-500' : 'bg-yellow-500'} h-2.5 rounded-full`} style={{ width: `${Math.min(100, emiBurdenPct)}%` }}></div>
-                            </div>
-                        </div>
-                        {isRisky && (
-                            <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
-                                <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p className="text-gray-700 text-sm" style={FONT}>This EMI consumes &gt;70% of your net surplus. High risk of distress if revenues drop slightly.</p>
-                            </div>
-                        )}
-                        {!isRisky && !isSafe && (
-                            <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 flex items-start gap-3">
-                                <p className="text-gray-700 text-sm" style={FONT}>This loan consumes a moderate portion of your surplus. Buffer exists but caution advised.</p>
-                            </div>
-                        )}
-                        {isSafe && (
-                            <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex items-start gap-3">
-                                <p className="text-gray-700 text-sm" style={FONT}>Very safe configuration. EMI is well within 50% of monthly free cash flow.</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Recommended Safe Loan */}
-                    <div className="rounded-2xl border-2 border-[#1B2F6E]/20 bg-white p-8 shadow-sm">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-[#1B2F6E]" style={FONT}>Recommended Safe Loan</h2>
-                            <span className="px-4 py-1.5 rounded-full bg-[#1B2F6E] text-white text-sm font-bold" style={FONT}>Optimal</span>
-                        </div>
-                        <p className="text-gray-500 text-sm mb-1" style={FONT}>Loan Amount</p>
-                        <p className="text-3xl font-bold text-[#1B2F6E] mb-5" style={FONT}>{fmt(recLoan)}</p>
-                        <div className="flex gap-12 mb-6">
-                            <div>
-                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Tenure</p>
-                                <p className="text-lg font-bold text-gray-900" style={FONT}>{recTenure} months</p>
-                            </div>
-                            <div>
-                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Monthly EMI</p>
-                                <p className="text-lg font-bold text-gray-900" style={FONT}>{fmt(recEMI)}</p>
-                            </div>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl p-4 mb-5">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-gray-600 text-sm font-medium" style={FONT}>EMI Coverage Ratio</span>
-                                <span className="text-xl font-bold text-[#1B2F6E]" style={FONT}>{recEmiRatio.toFixed(1)}x Cov.</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                <div className="bg-[#1B2F6E] h-2.5 rounded-full" style={{ width: `${Math.min(100, (recEMI / liveNetSurplus) * 100)}%` }}></div>
-                            </div>
-                        </div>
-                        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex items-start gap-3">
-                            <svg className="w-5 h-5 text-[#1B2F6E] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                            <p className="text-gray-700 text-sm" style={FONT}>Provides excellent safety margin and withstands economic stress scenarios.</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── Comparison Table ── */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
-                    <table className="w-full">
-                        <thead>
-                            <tr>
-                                <th className="text-left px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider w-[34%] border-b border-gray-100" style={FONT}>
-                                    Metric
-                                </th>
-                                <th className="text-left px-8 py-5 w-[33%] bg-red-50 border-b border-red-100">
-                                    <div className="flex items-center gap-2">
-                                        <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                        <span className="text-red-500 text-sm font-bold uppercase tracking-wider" style={FONT}>Your Proposed Loan</span>
+                        {/* ── Loan Comparison Cards ── */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                            {/* Your Proposed Loan */}
+                            <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-bold text-gray-900" style={FONT}>Your Proposed Loan</h2>
+                                    <span className={`px-4 py-1.5 rounded-full text-sm font-bold ${isRisky ? 'bg-red-100 text-red-700' : isSafe ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`} style={FONT}>
+                                        {isRisky ? 'High Risk' : isSafe ? 'Safe' : 'Moderate'}
+                                    </span>
+                                </div>
+                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Loan Amount</p>
+                                <p className="text-3xl font-bold text-gray-900 mb-5" style={FONT}>{fmt(loanAmount)}</p>
+                                <div className="flex gap-12 mb-6">
+                                    <div>
+                                        <p className="text-gray-500 text-sm mb-1" style={FONT}>Tenure</p>
+                                        <p className="text-lg font-bold text-gray-900" style={FONT}>{tenure} months</p>
                                     </div>
-                                </th>
-                                <th className="text-left px-8 py-5 w-[33%] bg-blue-50 border-b border-blue-100">
-                                    <div className="flex items-center gap-2">
-                                        <svg className="w-5 h-5 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                        </svg>
-                                        <span className="text-[#1B2F6E] text-sm font-bold uppercase tracking-wider" style={FONT}>Recommended Safe Loan</span>
+                                    <div>
+                                        <p className="text-gray-500 text-sm mb-1" style={FONT}>Monthly EMI</p>
+                                        <p className="text-lg font-bold text-gray-900" style={FONT}>{fmt(proposedEMI)}</p>
                                     </div>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {TABLE_ROWS.map((row, i) => (
-                                <tr key={row.metric}>
-                                    <td className="px-8 py-5 text-base font-medium text-gray-700 border-b border-gray-50" style={FONT}>
-                                        {row.metric}
-                                    </td>
-                                    <td className={`px-8 py-5 text-base font-bold bg-red-50/60 border-b border-red-50 ${row.proposedColor || "text-gray-900"}`} style={FONT}>
-                                        {row.proposed}
-                                    </td>
-                                    <td className={`px-8 py-5 text-base font-bold bg-blue-50/60 border-b border-blue-50 ${row.recommendedColor || "text-gray-900"}`} style={FONT}>
-                                        {row.recommended}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-4 mb-5">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-gray-600 text-sm font-medium" style={FONT}>EMI consumes {emiBurdenPct.toFixed(0)}% of Surplus</span>
+                                        <span className={`text-xl font-bold ${isRisky ? 'text-red-600' : 'text-[#1B2F6E]'}`} style={FONT}>{proposedEmiRatio.toFixed(1)}x Cov.</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div className={`${isRisky ? 'bg-red-500' : isSafe ? 'bg-green-500' : 'bg-yellow-500'} h-2.5 rounded-full`} style={{ width: `${Math.min(100, emiBurdenPct)}%` }}></div>
+                                    </div>
+                                </div>
+                                {isRisky && (
+                                    <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+                                        <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p className="text-gray-700 text-sm" style={FONT}>This EMI consumes &gt;70% of your net surplus. High risk of distress if revenues drop slightly.</p>
+                                    </div>
+                                )}
+                                {!isRisky && !isSafe && (
+                                    <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 flex items-start gap-3">
+                                        <p className="text-gray-700 text-sm" style={FONT}>This loan consumes a moderate portion of your surplus. Buffer exists but caution advised.</p>
+                                    </div>
+                                )}
+                                {isSafe && (
+                                    <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex items-start gap-3">
+                                        <p className="text-gray-700 text-sm" style={FONT}>Very safe configuration. EMI is well within 50% of monthly free cash flow.</p>
+                                    </div>
+                                )}
+                            </div>
 
-                {/* ── Bottom Cards ── */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Risk Analysis */}
-                    <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-8">
-                        <div className="flex items-center gap-2 mb-4">
-                            <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                            </svg>
-                            <h3 className="text-lg font-bold text-red-600" style={FONT}>Risk Analysis</h3>
+                            {/* Recommended Safe Loan */}
+                            <div className="rounded-2xl border-2 border-[#1B2F6E]/20 bg-white p-8 shadow-sm">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-bold text-[#1B2F6E]" style={FONT}>Recommended Safe Loan</h2>
+                                    <span className="px-4 py-1.5 rounded-full bg-[#1B2F6E] text-white text-sm font-bold" style={FONT}>Optimal</span>
+                                </div>
+                                <p className="text-gray-500 text-sm mb-1" style={FONT}>Loan Amount</p>
+                                <p className="text-3xl font-bold text-[#1B2F6E] mb-5" style={FONT}>{fmt(recLoan)}</p>
+                                <div className="flex gap-12 mb-6">
+                                    <div>
+                                        <p className="text-gray-500 text-sm mb-1" style={FONT}>Tenure</p>
+                                        <p className="text-lg font-bold text-gray-900" style={FONT}>{recTenure} months</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-500 text-sm mb-1" style={FONT}>Monthly EMI</p>
+                                        <p className="text-lg font-bold text-gray-900" style={FONT}>{fmt(recEMI)}</p>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-4 mb-5">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-gray-600 text-sm font-medium" style={FONT}>EMI Coverage Ratio</span>
+                                        <span className="text-xl font-bold text-[#1B2F6E]" style={FONT}>{recEmiRatio.toFixed(1)}x Cov.</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div className="bg-[#1B2F6E] h-2.5 rounded-full" style={{ width: `${Math.min(100, (recEMI / liveNetSurplus) * 100)}%` }}></div>
+                                    </div>
+                                </div>
+                                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex items-start gap-3">
+                                    <svg className="w-5 h-5 text-[#1B2F6E] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    <p className="text-gray-700 text-sm" style={FONT}>Provides excellent safety margin and withstands economic stress scenarios.</p>
+                                </div>
+                            </div>
                         </div>
-                        <p className="text-gray-700 text-base leading-relaxed mb-5" style={FONT}>
-                            Your proposed EMI of {fmt(proposedEMI)} consumes {emiBurdenPct.toFixed(1)}% of your actual historical cash flow surplus of {fmt(liveNetSurplus)}.
-                            {isRisky ? " The coverage ratio is dangerously low and could lead to distress in a single bad month." : " This loan meets basic coverage models, but could be further optimized for maximum safety ceiling against market shocks."}
-                        </p>
-                    </div>
 
-                    {/* Optimized Recommendation */}
-                    <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-8">
-                        <div className="flex items-center gap-2 mb-4">
-                            <svg className="w-6 h-6 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                            <h3 className="text-lg font-bold text-[#1B2F6E]" style={FONT}>Optimized Recommendation</h3>
+                        {/* ── Comparison Table ── */}
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
+                            <table className="w-full">
+                                <thead>
+                                    <tr>
+                                        <th className="text-left px-8 py-5 text-sm font-bold text-gray-500 uppercase tracking-wider w-[34%] border-b border-gray-100" style={FONT}>
+                                            Metric
+                                        </th>
+                                        <th className="text-left px-8 py-5 w-[33%] bg-red-50 border-b border-red-100">
+                                            <div className="flex items-center gap-2">
+                                                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                                </svg>
+                                                <span className="text-red-500 text-sm font-bold uppercase tracking-wider" style={FONT}>Your Proposed Loan</span>
+                                            </div>
+                                        </th>
+                                        <th className="text-left px-8 py-5 w-[33%] bg-blue-50 border-b border-blue-100">
+                                            <div className="flex items-center gap-2">
+                                                <svg className="w-5 h-5 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                </svg>
+                                                <span className="text-[#1B2F6E] text-sm font-bold uppercase tracking-wider" style={FONT}>Recommended Safe Loan</span>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {TABLE_ROWS.map((row, i) => (
+                                        <tr key={row.metric}>
+                                            <td className="px-8 py-5 text-base font-medium text-gray-700 border-b border-gray-50" style={FONT}>
+                                                {row.metric}
+                                            </td>
+                                            <td className={`px-8 py-5 text-base font-bold bg-red-50/60 border-b border-red-50 ${row.proposedColor || "text-gray-900"}`} style={FONT}>
+                                                {row.proposed}
+                                            </td>
+                                            <td className={`px-8 py-5 text-base font-bold bg-blue-50/60 border-b border-blue-50 ${row.recommendedColor || "text-gray-900"}`} style={FONT}>
+                                                {row.recommended}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                        <p className="text-gray-700 text-base leading-relaxed mb-5" style={FONT}>
-                            {isRisky ? `By reducing the principal to ${fmt(recLoan)} and extending tenure to ${recTenure} months, your EMI drops to ${fmt(recEMI)}/mo ensuring you stay below the 50% safety ceiling for EMI outflows.`
-                                : `Your proposed loan is already reasonably safe. A recommended "optimal safety" configuration locks your EMI coverage securely at ${recEmiRatio.toFixed(1)}x limiting downside impact.`}
-                        </p>
-                        <ul className="flex flex-col gap-2">
-                            <li className="flex items-center gap-2 text-gray-700 text-sm" style={FONT}>
-                                <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                45% lower monthly EMI burden
-                            </li>
-                            <li className="flex items-center gap-2 text-gray-700 text-sm" style={FONT}>
-                                <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                Resilient under stress scenarios up to 25% revenue drop
-                            </li>
-                            <li className="flex items-center gap-2 text-gray-700 text-sm" style={FONT}>
-                                <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                Total interest savings over lifecycle of recommendation: {fmt(Math.abs(proposedTotalInterest - recTotalInterest))}
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+
+                        {/* ── Bottom Cards ── */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Risk Analysis */}
+                            <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-8">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                    <h3 className="text-lg font-bold text-red-600" style={FONT}>Risk Analysis</h3>
+                                </div>
+                                <p className="text-gray-700 text-base leading-relaxed mb-5" style={FONT}>
+                                    Your proposed EMI of {fmt(proposedEMI)} consumes {emiBurdenPct.toFixed(1)}% of your actual historical cash flow surplus of {fmt(liveNetSurplus)}.
+                                    {isRisky ? " The coverage ratio is dangerously low and could lead to distress in a single bad month." : " This loan meets basic coverage models, but could be further optimized for maximum safety ceiling against market shocks."}
+                                </p>
+                            </div>
+
+                            {/* Optimized Recommendation */}
+                            <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-8">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <svg className="w-6 h-6 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                    </svg>
+                                    <h3 className="text-lg font-bold text-[#1B2F6E]" style={FONT}>Optimized Recommendation</h3>
+                                </div>
+                                <p className="text-gray-700 text-base leading-relaxed mb-5" style={FONT}>
+                                    {isRisky ? `By reducing the principal to ${fmt(recLoan)} and extending tenure to ${recTenure} months, your EMI drops to ${fmt(recEMI)}/mo ensuring you stay below the 50% safety ceiling for EMI outflows.`
+                                        : `Your proposed loan is already reasonably safe. A recommended "optimal safety" configuration locks your EMI coverage securely at ${recEmiRatio.toFixed(1)}x limiting downside impact.`}
+                                </p>
+                                <ul className="flex flex-col gap-2">
+                                    <li className="flex items-center gap-2 text-gray-700 text-sm" style={FONT}>
+                                        <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        45% lower monthly EMI burden
+                                    </li>
+                                    <li className="flex items-center gap-2 text-gray-700 text-sm" style={FONT}>
+                                        <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Resilient under stress scenarios up to 25% revenue drop
+                                    </li>
+                                    <li className="flex items-center gap-2 text-gray-700 text-sm" style={FONT}>
+                                        <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Total interest savings over lifecycle of recommendation: {fmt(Math.abs(proposedTotalInterest - recTotalInterest))}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </>
+                )}
             </main>
         </div>
     );

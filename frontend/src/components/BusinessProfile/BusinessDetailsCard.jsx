@@ -1,6 +1,7 @@
 import React from "react";
 
 const BusinessDetailsCard = () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
     const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
 
     return (
@@ -19,7 +20,7 @@ const BusinessDetailsCard = () => {
                         </div>
                         <div>
                             <p className="text-gray-600 text-xs font-bold uppercase tracking-wide mb-1">Business Registration Number</p>
-                            <p className="text-gray-900 font-bold text-sm">BRN/MH/2019/00234567</p>
+                            <p className="text-gray-900 font-bold text-sm">{user?.brn || 'Not Provided'}</p>
                         </div>
                     </div>
 
@@ -32,7 +33,7 @@ const BusinessDetailsCard = () => {
                         </div>
                         <div>
                             <p className="text-gray-600 text-xs font-bold uppercase tracking-wide mb-1">GST Number</p>
-                            <p className="text-gray-900 font-bold text-sm">27AABCT1234F1Z5</p>
+                            <p className="text-gray-900 font-bold text-sm">{user?.gstNumber || 'Not Provided'}</p>
                         </div>
                     </div>
 
@@ -45,7 +46,7 @@ const BusinessDetailsCard = () => {
                         </div>
                         <div>
                             <p className="text-gray-600 text-xs font-bold uppercase tracking-wide mb-1">PAN Number</p>
-                            <p className="text-gray-900 font-bold text-sm">AABCT****F</p>
+                            <p className="text-gray-900 font-bold text-sm">{user?.panNumber || 'Not Provided'}</p>
                         </div>
                     </div>
 
@@ -58,7 +59,7 @@ const BusinessDetailsCard = () => {
                         </div>
                         <div>
                             <p className="text-gray-600 text-xs font-bold uppercase tracking-wide mb-1">Primary Bank Account</p>
-                            <p className="text-gray-900 font-bold text-sm">HDFC Bank •••• 4567</p>
+                            <p className="text-gray-900 font-bold text-sm">{user?.bankAccount || 'Not Provided'}</p>
                         </div>
                     </div>
                 </div>

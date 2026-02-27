@@ -8,6 +8,14 @@ const INDUSTRIES = [
     "Professional Services", "Agriculture", "Other",
 ];
 
+const REGISTRATION_TYPES = [
+    "Sole Proprietorship",
+    "Partnership",
+    "LLP",
+    "Private Limited",
+    "One Person Company"
+];
+
 /* ───────────────────────── Analysis Steps ───────────────────────── */
 const ANALYSIS_STEPS = [
     {
@@ -54,7 +62,7 @@ const ANALYSIS_STEPS = [
 const StepBusinessProfile = ({ onContinue }) => {
     const [form, setForm] = useState({
         name: "", email: "", password: "", confirmPassword: "",
-        businessName: "", industry: "", yearsInOperation: "",
+        businessName: "", industry: "", registrationType: "", yearsInOperation: "",
         loanAmount: "", loanTenure: "",
     });
     const [loading, setLoading] = useState(false);
@@ -69,7 +77,7 @@ const StepBusinessProfile = ({ onContinue }) => {
             return;
         }
 
-        const required = ["name", "email", "password", "businessName", "industry", "yearsInOperation", "loanAmount", "loanTenure"];
+        const required = ["name", "email", "password", "businessName", "industry", "registrationType", "yearsInOperation", "loanAmount", "loanTenure"];
         if (required.some(key => !form[key])) {
             setError("Please fill in all fields");
             return;
@@ -132,16 +140,30 @@ const StepBusinessProfile = ({ onContinue }) => {
                         {/* Business fields */}
                         <Field label="Business Name" placeholder="e.g. Apex Trading Co." value={form.businessName} onChange={set("businessName")} />
 
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-gray-700 text-sm font-semibold">Industry Type</label>
-                            <select
-                                value={form.industry}
-                                onChange={set("industry")}
-                                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1B2F6E] focus:border-transparent transition appearance-none"
-                            >
-                                <option value="">Select Industry</option>
-                                {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
-                            </select>
+                        <div className="grid grid-cols-2 gap-5">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-gray-700 text-sm font-semibold">Industry Type</label>
+                                <select
+                                    value={form.industry}
+                                    onChange={set("industry")}
+                                    className="w-full border border-gray-200 rounded-lg px-4 py-3 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1B2F6E] focus:border-transparent transition appearance-none"
+                                >
+                                    <option value="">Select Industry</option>
+                                    {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-gray-700 text-sm font-semibold">Registration Type</label>
+                                <select
+                                    value={form.registrationType}
+                                    onChange={set("registrationType")}
+                                    className="w-full border border-gray-200 rounded-lg px-4 py-3 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1B2F6E] focus:border-transparent transition appearance-none"
+                                >
+                                    <option value="">Select Type</option>
+                                    {REGISTRATION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                                </select>
+                            </div>
                         </div>
 
                         <Field label="Years in Operation" placeholder="e.g. 5" type="number" value={form.yearsInOperation} onChange={set("yearsInOperation")} />
@@ -250,6 +272,19 @@ const StepUpload = ({ onBeginAnalysis }) => {
 
             // Save to localStorage so dashboard can use it
             localStorage.setItem("pdf_analysis", JSON.stringify(data.data));
+
+            // Also save to assessment history
+            const history = JSON.parse(localStorage.getItem("assessment_history") || "[]");
+            const score = data.data?.scores?.overall || 0;
+            const netSurplus = data.data?.net_surplus || 0;
+            const recommendation = score >= 700 ? "Eligible" : score >= 500 ? "Conditional" : "Not Recommended";
+            history.unshift({
+                date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                score: score,
+                category: score >= 700 ? "Low Risk" : (score >= 600 ? "Medium Risk" : "High Risk"),
+                recommendation: recommendation,
+            });
+            localStorage.setItem("assessment_history", JSON.stringify(history));
 
         } catch (err) {
             setError(err.message);

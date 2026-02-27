@@ -16,3 +16,6 @@ Werkzeug==3.0.3
 # Utilities
 python-dateutil==2.9.0
 pdfplumber==0.11.2
+
+# AI
+google-generativeai

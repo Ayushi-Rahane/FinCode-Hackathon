@@ -21,6 +21,7 @@ const StressTestingPage = () => {
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
+    const hasData = Object.keys(analysisData).length > 0;
 
     // Live averages fallback to 0 safely (from actual Python keys)
     const avgRevenue = analysisData.avg_monthly_inflow || 0;
@@ -147,174 +148,185 @@ const StressTestingPage = () => {
 
             {/* ── Main Content ── */}
             <main className="flex-1 px-10 py-10 overflow-auto">
-                {/* Header */}
-                <div className="mb-10">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">Stress Testing</h1>
-                    <p className="text-gray-500 text-lg" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                        Simulate adverse financial scenarios to assess business resilience.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-                    {/* ── Left Column ── */}
-                    <div className="flex flex-col gap-8">
-
-                        {/* Scenario Parameters */}
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-                            <h2 className="text-xl font-bold text-gray-900 mb-8" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Scenario Parameters</h2>
-
-                            {/* Revenue Drop Slider */}
-                            <div className="mb-8">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-gray-900 font-bold text-base" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Revenue Drop</span>
-                                    <span className="text-[#1B2F6E] font-bold text-xl bg-blue-50 px-4 py-1.5 rounded-lg">{revenueDrop}%</span>
-                                </div>
-                                <input
-                                    type="range" min="0" max="60" value={revenueDrop}
-                                    onChange={(e) => setRevenueDrop(Number(e.target.value))}
-                                    className="w-full h-2.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#1B2F6E]"
-                                />
-                                <div className="flex justify-between mt-2">
-                                    <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>0%</span>
-                                    <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>30%</span>
-                                    <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>60%</span>
-                                </div>
-                            </div>
-
-                            {/* Expense Increase Slider */}
-                            <div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-gray-900 font-bold text-base" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Expense Increase</span>
-                                    <span className="text-[#1B2F6E] font-bold text-xl bg-blue-50 px-4 py-1.5 rounded-lg">{expenseIncrease}%</span>
-                                </div>
-                                <input
-                                    type="range" min="0" max="50" value={expenseIncrease}
-                                    onChange={(e) => setExpenseIncrease(Number(e.target.value))}
-                                    className="w-full h-2.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#1B2F6E]"
-                                />
-                                <div className="flex justify-between mt-2">
-                                    <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>0%</span>
-                                    <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>25%</span>
-                                    <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>50%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Baseline Figures */}
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-                            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-5" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Live PDF Baselines</h3>
-                            <div className="flex flex-col gap-4">
-                                <Row label="Avg Monthly Revenue" value={fmt(avgRevenue)} />
-                                <Row label="Avg Monthly Expense" value={fmt(avgExpense)} />
-                                <Row label="Proposed EMI (Mock)" value={fmt(proposedEMI)} />
-                            </div>
-                        </div>
+                {!hasData ? (
+                    <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 text-center max-w-md mx-auto mt-20">
+                        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">No Assessment Data</h2>
+                        <p className="text-gray-500 mb-6">You haven't uploaded any bank statements yet. Please upload to generate your assessment.</p>
+                        <Link to="/register?step=2" className="bg-[#1B2F6E] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#12235A] transition-colors inline-block">Upload Statements</Link>
                     </div>
-
-                    {/* ── Right Column ── */}
-                    <div className="flex flex-col gap-8">
-
-                        {/* High Risk Alert */}
-                        <div className={`rounded-2xl border-2 p-8 ${riskColor === "red"
-                            ? "bg-red-50 border-red-200"
-                            : riskColor === "orange"
-                                ? "bg-orange-50 border-orange-200"
-                                : "bg-green-50 border-green-200"
-                            }`}>
-
-                            <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
-                                <div className="flex items-center gap-2">
-                                    <svg className={`w-6 h-6 ${riskColor === "red" ? "text-red-500"
-                                        : riskColor === "orange" ? "text-orange-500"
-                                            : "text-green-500"
-                                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                    </svg>
-                                    <h3 className={`text-2xl font-bold ${riskColor === "red" ? "text-red-600"
-                                        : riskColor === "orange" ? "text-orange-600"
-                                            : "text-green-600"
-                                        }`}>{riskLabel}</h3>
-                                </div>
-
-                                <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-3 flex items-center gap-4 shrink-0">
-                                    <div className="flex flex-col">
-                                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wide">Base Score</span>
-                                        <span className="text-gray-900 font-bold text-lg">{baseScore}</span>
-                                    </div>
-                                    <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                    </svg>
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wide">Stressed Score</span>
-                                        <span className={`font-bold text-2xl ${stressedScore < 500 ? "text-red-600" : stressedScore < 650 ? "text-orange-600" : "text-green-600"
-                                            }`}>{stressedScore}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <p className="text-gray-700 text-base leading-relaxed" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                                {riskMessage}
+                ) : (
+                    <>
+                        {/* Header */}
+                        <div className="mb-10">
+                            <h1 className="text-4xl font-bold text-gray-900 mb-2">Stress Testing</h1>
+                            <p className="text-gray-500 text-lg" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                                Simulate adverse financial scenarios to assess business resilience.
                             </p>
                         </div>
 
-                        {/* Stressed Financials */}
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-                            <h2 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-[#1B2F6E] inline-block" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Stressed Financials</h2>
-                            <div className="flex flex-col gap-0">
-                                <FinancialRow
-                                    icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />}
-                                    iconColor="text-red-500"
-                                    label="Stressed Revenue"
-                                    value={fmt(stressedRevenue)}
-                                />
-                                <FinancialRow
-                                    icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />}
-                                    iconColor="text-red-500"
-                                    label="Stressed Expense"
-                                    value={fmt(stressedExpense)}
-                                />
-                                <FinancialRow
-                                    icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />}
-                                    iconColor={netSurplus < 0 ? "text-red-500" : netSurplus < 50000 ? "text-yellow-500" : "text-green-500"}
-                                    label="Net Surplus"
-                                    value={fmt(netSurplus)}
-                                    valueColor={netSurplus < 0 ? "text-red-500" : "text-gray-900"}
-                                />
-                                <FinancialRow
-                                    icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />}
-                                    iconColor={emiCoverage < 1.5 ? "text-red-500" : emiCoverage < 2.5 ? "text-yellow-500" : "text-green-500"}
-                                    label="EMI Coverage Ratio"
-                                    value={`${emiCoverage.toFixed(2)}x`}
-                                    valueColor={emiCoverage < 1.5 ? "text-red-500" : "text-gray-900"}
-                                />
-                                <FinancialRow
-                                    icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />}
-                                    iconColor="text-gray-400"
-                                    label="Liquidity Buffer"
-                                    value={`${liquidityBuffer.toFixed(2)}x`}
-                                    last
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-                {/* Risk Warning — full width below both columns */}
-                {isHighRisk && (
-                    <div className="mt-8 rounded-2xl border-2 border-red-200 bg-red-50 p-6">
-                        <div className="flex items-start gap-3">
-                            <svg className="w-6 h-6 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                            </svg>
-                            <div>
-                                <h4 className="text-red-600 font-bold text-base mb-1" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Risk Warning</h4>
-                                <p className="text-gray-700 text-sm leading-relaxed" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
-                                    Under this stress scenario, EMI coverage collapses and your predictive credit score plummets to <strong>{stressedScore} / High Risk</strong>. Consider reducing the loan amount or extending the tenure to maintain adequate safe harbor.
-                                </p>
+                            {/* ── Left Column ── */}
+                            <div className="flex flex-col gap-8">
+
+                                {/* Scenario Parameters */}
+                                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+                                    <h2 className="text-xl font-bold text-gray-900 mb-8" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Scenario Parameters</h2>
+
+                                    {/* Revenue Drop Slider */}
+                                    <div className="mb-8">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-gray-900 font-bold text-base" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Revenue Drop</span>
+                                            <span className="text-[#1B2F6E] font-bold text-xl bg-blue-50 px-4 py-1.5 rounded-lg">{revenueDrop}%</span>
+                                        </div>
+                                        <input
+                                            type="range" min="0" max="60" value={revenueDrop}
+                                            onChange={(e) => setRevenueDrop(Number(e.target.value))}
+                                            className="w-full h-2.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#1B2F6E]"
+                                        />
+                                        <div className="flex justify-between mt-2">
+                                            <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>0%</span>
+                                            <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>30%</span>
+                                            <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>60%</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Expense Increase Slider */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-gray-900 font-bold text-base" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Expense Increase</span>
+                                            <span className="text-[#1B2F6E] font-bold text-xl bg-blue-50 px-4 py-1.5 rounded-lg">{expenseIncrease}%</span>
+                                        </div>
+                                        <input
+                                            type="range" min="0" max="50" value={expenseIncrease}
+                                            onChange={(e) => setExpenseIncrease(Number(e.target.value))}
+                                            className="w-full h-2.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#1B2F6E]"
+                                        />
+                                        <div className="flex justify-between mt-2">
+                                            <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>0%</span>
+                                            <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>25%</span>
+                                            <span className="text-gray-400 text-sm" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>50%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Baseline Figures */}
+                                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+                                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-5" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Live PDF Baselines</h3>
+                                    <div className="flex flex-col gap-4">
+                                        <Row label="Avg Monthly Revenue" value={fmt(avgRevenue)} />
+                                        <Row label="Avg Monthly Expense" value={fmt(avgExpense)} />
+                                        <Row label="Proposed EMI (Mock)" value={fmt(proposedEMI)} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ── Right Column ── */}
+                            <div className="flex flex-col gap-8">
+
+                                {/* High Risk Alert */}
+                                <div className={`rounded-2xl border-2 p-8 ${riskColor === "red"
+                                    ? "bg-red-50 border-red-200"
+                                    : riskColor === "orange"
+                                        ? "bg-orange-50 border-orange-200"
+                                        : "bg-green-50 border-green-200"
+                                    }`}>
+
+                                    <div className="flex flex-col md:flex-row items-center justify-between mb-4 gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <svg className={`w-6 h-6 ${riskColor === "red" ? "text-red-500"
+                                                : riskColor === "orange" ? "text-orange-500"
+                                                    : "text-green-500"
+                                                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                            </svg>
+                                            <h3 className={`text-2xl font-bold ${riskColor === "red" ? "text-red-600"
+                                                : riskColor === "orange" ? "text-orange-600"
+                                                    : "text-green-600"
+                                                }`}>{riskLabel}</h3>
+                                        </div>
+
+                                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-3 flex items-center gap-4 shrink-0">
+                                            <div className="flex flex-col">
+                                                <span className="text-gray-400 text-xs font-bold uppercase tracking-wide">Base Score</span>
+                                                <span className="text-gray-900 font-bold text-lg">{baseScore}</span>
+                                            </div>
+                                            <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                            </svg>
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-gray-400 text-xs font-bold uppercase tracking-wide">Stressed Score</span>
+                                                <span className={`font-bold text-2xl ${stressedScore < 500 ? "text-red-600" : stressedScore < 650 ? "text-orange-600" : "text-green-600"
+                                                    }`}>{stressedScore}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-gray-700 text-base leading-relaxed" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                                        {riskMessage}
+                                    </p>
+                                </div>
+
+                                {/* Stressed Financials */}
+                                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+                                    <h2 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-[#1B2F6E] inline-block" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Stressed Financials</h2>
+                                    <div className="flex flex-col gap-0">
+                                        <FinancialRow
+                                            icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />}
+                                            iconColor="text-red-500"
+                                            label="Stressed Revenue"
+                                            value={fmt(stressedRevenue)}
+                                        />
+                                        <FinancialRow
+                                            icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />}
+                                            iconColor="text-red-500"
+                                            label="Stressed Expense"
+                                            value={fmt(stressedExpense)}
+                                        />
+                                        <FinancialRow
+                                            icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />}
+                                            iconColor={netSurplus < 0 ? "text-red-500" : netSurplus < 50000 ? "text-yellow-500" : "text-green-500"}
+                                            label="Net Surplus"
+                                            value={fmt(netSurplus)}
+                                            valueColor={netSurplus < 0 ? "text-red-500" : "text-gray-900"}
+                                        />
+                                        <FinancialRow
+                                            icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />}
+                                            iconColor={emiCoverage < 1.5 ? "text-red-500" : emiCoverage < 2.5 ? "text-yellow-500" : "text-green-500"}
+                                            label="EMI Coverage Ratio"
+                                            value={`${emiCoverage.toFixed(2)}x`}
+                                            valueColor={emiCoverage < 1.5 ? "text-red-500" : "text-gray-900"}
+                                        />
+                                        <FinancialRow
+                                            icon={<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />}
+                                            iconColor="text-gray-400"
+                                            label="Liquidity Buffer"
+                                            value={`${liquidityBuffer.toFixed(2)}x`}
+                                            last
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                        {/* Risk Warning — full width below both columns */}
+                        {isHighRisk && (
+                            <div className="mt-8 rounded-2xl border-2 border-red-200 bg-red-50 p-6">
+                                <div className="flex items-start gap-3">
+                                    <svg className="w-6 h-6 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.832c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                    <div>
+                                        <h4 className="text-red-600 font-bold text-base mb-1" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>Risk Warning</h4>
+                                        <p className="text-gray-700 text-sm leading-relaxed" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
+                                            Under this stress scenario, EMI coverage collapses and your predictive credit score plummets to <strong>{stressedScore} / High Risk</strong>. Consider reducing the loan amount or extending the tenure to maintain adequate safe harbor.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
             </main>
         </div>

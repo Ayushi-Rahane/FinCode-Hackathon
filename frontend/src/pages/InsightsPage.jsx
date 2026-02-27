@@ -20,6 +20,7 @@ const InsightsPage = () => {
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const analysisData = JSON.parse(localStorage.getItem("pdf_analysis") || "{}");
+    const hasData = Object.keys(analysisData).length > 0;
 
     // Dynamic insights data from Python response
     const insightsList = analysisData.insights || [];
@@ -152,132 +153,143 @@ const InsightsPage = () => {
 
             {/* ── Main Content ── */}
             <main className="flex-1 px-10 py-10 overflow-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">Advisory Insights</h1>
-                    <p className="text-gray-500 text-lg" style={FONT}>
-                        Actionable recommendations to strengthen your credit profile and financial health.
-                    </p>
-                </div>
-
-                {/* ── Summary Bar ── */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8 flex flex-wrap items-center justify-between gap-6">
-                    <div className="flex items-center gap-10">
-                        <div>
-                            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Total Potential Score Improvement</p>
-                            <p className="text-3xl font-bold text-[#1B2F6E]" style={FONT}>+{totalImpact} pts</p>
-                        </div>
-                        <div className="h-10 w-px bg-gray-200" />
-                        <div>
-                            <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Projected Score</p>
-                            <p className="text-3xl font-bold text-gray-900" style={FONT}>{baseScore} → {projectedScore}</p>
-                        </div>
+                {!hasData ? (
+                    <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 text-center max-w-md mx-auto mt-20">
+                        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">No Assessment Data</h2>
+                        <p className="text-gray-500 mb-6">You haven't uploaded any bank statements yet. Please upload to generate your assessment.</p>
+                        <Link to="/register?step=2" className="bg-[#1B2F6E] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#12235A] transition-colors inline-block">Upload Statements</Link>
                     </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        {highCount > 0 && <span className="px-4 py-1.5 rounded-full border border-red-200 text-red-600 text-sm font-bold" style={FONT}>{highCount} High Priority</span>}
-                        {medCount > 0 && <span className="px-4 py-1.5 rounded-full border border-orange-200 text-orange-600 text-sm font-bold" style={FONT}>{medCount} Medium Priority</span>}
-                        {lowCount > 0 && <span className="px-4 py-1.5 rounded-full border border-green-200 text-green-600 text-sm font-bold" style={FONT}>{lowCount} Low Priority</span>}
-                        {posCount > 0 && <span className="px-4 py-1.5 rounded-full border border-blue-200 text-blue-600 text-sm font-bold" style={FONT}>{posCount} Positive Insight{posCount > 1 ? "s" : ""}</span>}
-                        {insightsList.length === 0 && <span className="px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 text-sm font-bold" style={FONT}>Generate assessment to see insights</span>}
-                    </div>
-                </div>
-
-                {/* ── AI Advisory Narrative ── */}
-                {aiInsightText && (
-                    <div className="bg-gradient-to-r from-[#1B2F6E]/5 to-transparent rounded-2xl border border-[#1B2F6E]/10 p-8 mb-8 relative overflow-hidden">
-                        {/* Decorative background element */}
-                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                            <svg className="w-48 h-48" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                            </svg>
+                ) : (
+                    <>
+                        {/* Header */}
+                        <div className="mb-8">
+                            <h1 className="text-4xl font-bold text-gray-900 mb-2">Advisory Insights</h1>
+                            <p className="text-gray-500 text-lg" style={FONT}>
+                                Actionable recommendations to strengthen your credit profile and financial health.
+                            </p>
                         </div>
 
-                        <div className="flex items-start gap-4 relative z-10">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1B2F6E] to-blue-600 flex items-center justify-center shrink-0 shadow-sm">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                                </svg>
+                        {/* ── Summary Bar ── */}
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8 flex flex-wrap items-center justify-between gap-6">
+                            <div className="flex items-center gap-10">
+                                <div>
+                                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Total Potential Score Improvement</p>
+                                    <p className="text-3xl font-bold text-[#1B2F6E]" style={FONT}>+{totalImpact} pts</p>
+                                </div>
+                                <div className="h-10 w-px bg-gray-200" />
+                                <div>
+                                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1" style={FONT}>Projected Score</p>
+                                    <p className="text-3xl font-bold text-gray-900" style={FONT}>{baseScore} → {projectedScore}</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2" style={FONT}>
-                                    Credalytix AI Analysis
-                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1B2F6E]/10 text-[#1B2F6E] uppercase tracking-wider">Premium</span>
-                                </h3>
-                                <p className="text-gray-700 leading-relaxed font-medium" style={FONT}>
-                                    "{aiInsightText}"
-                                </p>
+                            <div className="flex items-center gap-3 flex-wrap">
+                                {highCount > 0 && <span className="px-4 py-1.5 rounded-full border border-red-200 text-red-600 text-sm font-bold" style={FONT}>{highCount} High Priority</span>}
+                                {medCount > 0 && <span className="px-4 py-1.5 rounded-full border border-orange-200 text-orange-600 text-sm font-bold" style={FONT}>{medCount} Medium Priority</span>}
+                                {lowCount > 0 && <span className="px-4 py-1.5 rounded-full border border-green-200 text-green-600 text-sm font-bold" style={FONT}>{lowCount} Low Priority</span>}
+                                {posCount > 0 && <span className="px-4 py-1.5 rounded-full border border-blue-200 text-blue-600 text-sm font-bold" style={FONT}>{posCount} Positive Insight{posCount > 1 ? "s" : ""}</span>}
+                                {insightsList.length === 0 && <span className="px-4 py-1.5 rounded-full border border-gray-200 text-gray-600 text-sm font-bold" style={FONT}>Generate assessment to see insights</span>}
                             </div>
                         </div>
-                    </div>
-                )}
 
-                {/* ── Insight Cards ── */}
-                <div className="flex flex-col gap-6">
-                    {insightsList.map((insight, idx) => {
-                        const styles = getInsightStyles(insight.priority, insight.type);
+                        {/* ── AI Advisory Narrative ── */}
+                        {aiInsightText && (
+                            <div className="bg-gradient-to-r from-[#1B2F6E]/5 to-transparent rounded-2xl border border-[#1B2F6E]/10 p-8 mb-8 relative overflow-hidden">
+                                {/* Decorative background element */}
+                                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                                    <svg className="w-48 h-48" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                                    </svg>
+                                </div>
 
-                        return (
-                            <div key={idx} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                <div className="flex flex-col lg:flex-row">
-                                    {/* Left Content */}
-                                    <div className="flex-1 p-8">
-                                        {/* Title Row */}
-                                        <div className="flex items-start gap-3 mb-1">
-                                            <div className={`w-9 h-9 rounded-full ${styles.iconBg} flex items-center justify-center ${styles.iconColor} shrink-0`}>
-                                                {styles.icon}
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-bold text-gray-900" style={FONT}>{insight.title}</h3>
-                                                <span className={`inline-block mt-1 px-3 py-0.5 rounded-full text-white text-xs font-bold ${styles.priorityBadgeBg}`} style={FONT}>
-                                                    {insight.priority}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Issue */}
-                                        <div className="mt-5 mb-4">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider" style={FONT}>Issue Identified</span>
-                                            </div>
-                                            <p className="text-gray-700 text-sm leading-relaxed" style={FONT}>{insight.issue}</p>
-                                        </div>
-
-                                        {/* Recommended Action */}
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <svg className="w-4 h-4 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                                </svg>
-                                                <span className="text-xs font-bold text-[#1B2F6E] uppercase tracking-wider" style={FONT}>Recommended Action</span>
-                                            </div>
-                                            <p className="text-gray-700 text-sm leading-relaxed" style={FONT}>{insight.action}</p>
-                                        </div>
+                                <div className="flex items-start gap-4 relative z-10">
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1B2F6E] to-blue-600 flex items-center justify-center shrink-0 shadow-sm">
+                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                        </svg>
                                     </div>
-
-                                    {/* Right Score Impact Panel */}
-                                    <div className="lg:w-56 border-t lg:border-t-0 lg:border-l border-gray-100 p-6 flex flex-col items-center justify-center bg-gray-50/50">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1" style={FONT}>Score Impact</p>
-                                        <p className={`text-3xl font-bold mb-4 ${insight.scoreImpact.includes('+') ? 'text-[#1B2F6E]' : 'text-gray-500 text-2xl'}`} style={FONT}>{insight.scoreImpact}</p>
-                                        <p className="text-xs text-gray-500 font-medium mb-2 text-center" style={FONT}>{insight.metricName}</p>
-                                        <div className="flex items-center justify-center gap-1.5 mb-2 flex-wrap">
-                                            <span className={`text-sm font-bold ${insight.scoreImpact.includes("+") ? "text-orange-500" : "text-green-600"}`} style={FONT}>{insight.metricFrom}</span>
-                                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                            </svg>
-                                            <span className="text-sm font-bold text-gray-900" style={FONT}>{insight.metricTo}</span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div className={`h-2 rounded-full transition-all duration-500 ${insight.priority === 'Positive Insight' ? 'bg-green-500' : 'bg-[#1B2F6E]'}`} style={{ width: insight.barWidth }}></div>
-                                        </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2" style={FONT}>
+                                            Credalytix AI Analysis
+                                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1B2F6E]/10 text-[#1B2F6E] uppercase tracking-wider">Premium</span>
+                                        </h3>
+                                        <p className="text-gray-700 leading-relaxed font-medium" style={FONT}>
+                                            "{aiInsightText}"
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
+                        )}
+
+                        {/* ── Insight Cards ── */}
+                        <div className="flex flex-col gap-6">
+                            {insightsList.map((insight, idx) => {
+                                const styles = getInsightStyles(insight.priority, insight.type);
+
+                                return (
+                                    <div key={idx} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                        <div className="flex flex-col lg:flex-row">
+                                            {/* Left Content */}
+                                            <div className="flex-1 p-8">
+                                                {/* Title Row */}
+                                                <div className="flex items-start gap-3 mb-1">
+                                                    <div className={`w-9 h-9 rounded-full ${styles.iconBg} flex items-center justify-center ${styles.iconColor} shrink-0`}>
+                                                        {styles.icon}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-bold text-gray-900" style={FONT}>{insight.title}</h3>
+                                                        <span className={`inline-block mt-1 px-3 py-0.5 rounded-full text-white text-xs font-bold ${styles.priorityBadgeBg}`} style={FONT}>
+                                                            {insight.priority}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Issue */}
+                                                <div className="mt-5 mb-4">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider" style={FONT}>Issue Identified</span>
+                                                    </div>
+                                                    <p className="text-gray-700 text-sm leading-relaxed" style={FONT}>{insight.issue}</p>
+                                                </div>
+
+                                                {/* Recommended Action */}
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <svg className="w-4 h-4 text-[#1B2F6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                                        </svg>
+                                                        <span className="text-xs font-bold text-[#1B2F6E] uppercase tracking-wider" style={FONT}>Recommended Action</span>
+                                                    </div>
+                                                    <p className="text-gray-700 text-sm leading-relaxed" style={FONT}>{insight.action}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Right Score Impact Panel */}
+                                            <div className="lg:w-56 border-t lg:border-t-0 lg:border-l border-gray-100 p-6 flex flex-col items-center justify-center bg-gray-50/50">
+                                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1" style={FONT}>Score Impact</p>
+                                                <p className={`text-3xl font-bold mb-4 ${insight.scoreImpact.includes('+') ? 'text-[#1B2F6E]' : 'text-gray-500 text-2xl'}`} style={FONT}>{insight.scoreImpact}</p>
+                                                <p className="text-xs text-gray-500 font-medium mb-2 text-center" style={FONT}>{insight.metricName}</p>
+                                                <div className="flex items-center justify-center gap-1.5 mb-2 flex-wrap">
+                                                    <span className={`text-sm font-bold ${insight.scoreImpact.includes("+") ? "text-orange-500" : "text-green-600"}`} style={FONT}>{insight.metricFrom}</span>
+                                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                                    </svg>
+                                                    <span className="text-sm font-bold text-gray-900" style={FONT}>{insight.metricTo}</span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                                    <div className={`h-2 rounded-full transition-all duration-500 ${insight.priority === 'Positive Insight' ? 'bg-green-500' : 'bg-[#1B2F6E]'}`} style={{ width: insight.barWidth }}></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
             </main>
         </div>
     );

@@ -12,7 +12,7 @@ def register():
             return jsonify({"error": "Missing JSON payload"}), 400
 
         # Basic required fields validation
-        required_fields = ["name", "email", "password", "businessName", "industry", "yearsInOperation", "loanAmount", "loanTenure"]
+        required_fields = ["name", "email", "password", "businessName", "industry", "registrationType", "yearsInOperation", "loanAmount", "loanTenure"]
         for field in required_fields:
             if not data.get(field):
                 return jsonify({"error": f"Missing required field: {field}"}), 400
@@ -32,6 +32,7 @@ def register():
             "password": generate_password_hash(data["password"], method="pbkdf2:sha256"), # Hash the password
             "businessName": data["businessName"],
             "industry": data["industry"],
+            "registrationType": data["registrationType"],
             "yearsInOperation": int(data["yearsInOperation"]),
             "loanAmount": float(data["loanAmount"]) if data["loanAmount"] else 0.0,
             "loanTenure": int(data["loanTenure"]) if data["loanTenure"] else 0,
@@ -48,6 +49,7 @@ def register():
                 "email": new_user["email"],
                 "businessName": new_user["businessName"],
                 "industry": new_user["industry"],
+                "registrationType": new_user["registrationType"],
                 "loanAmount": new_user.get("loanAmount", 500000.0),
                 "loanTenure": new_user.get("loanTenure", 24)
             }
@@ -82,6 +84,7 @@ def login():
                 "email": user.get("email"),
                 "businessName": user.get("businessName"),
                 "industry": user.get("industry"),
+                "registrationType": user.get("registrationType"),
                 "loanAmount": user.get("loanAmount", 500000.0),
                 "loanTenure": user.get("loanTenure", 24)
             }

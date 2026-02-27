@@ -1,4 +1,4 @@
-# Credalytix: AI-Powered Credit Assessment Platform
+# Credalytix: Credit Assessment Platform for SMEs
 
 ## Video Demonstration
 **Watch the full platform walkthrough:** [LINK](https://drive.google.com/file/d/1x5wfv8MxOR2Q0oCBy-rYehW8YUmNcyoT/view?usp=sharing)
